@@ -1,0 +1,201 @@
+@startuml Streamlink Dashboard Class Diagram
+
+!define ENTITY(name,desc) class name as "desc" << (E,#E1F5FE) >>
+!define SERVICE(name,desc) class name as "desc" << (S,#FFF3E0) >>
+!define REPOSITORY(name,desc) class name as "desc" << (R,#E8F5E8) >>
+
+title Streamlink Dashboard - Domain Class Diagram
+
+' Core Domain Entities
+ENTITY(User, "User") {
+    - id: int
+    - username: str
+    - password_hash: str
+    - is_admin: bool
+    - is_active: bool
+    - created_at: datetime
+    - last_login: datetime
+    - updated_at: datetime
+    --
+    + authenticate(password: str): bool
+    + is_authenticated(): bool
+}
+
+ENTITY(PlatformConfig, "PlatformConfig") {
+    - id: int
+    - platform: str
+    - stream_url_pattern: str
+    - quality_options: str
+    - default_quality: str
+    - additional_settings: dict
+    - created_at: datetime
+    - updated_at: datetime
+    --
+    + get_stream_url(streamer_id: str): str
+    + get_quality_options(): list
+}
+
+ENTITY(RotationPolicy, "RotationPolicy") {
+    - id: int
+    - name: str
+    - policy_type: str
+    - max_age_days: int
+    - max_count: int
+    - max_size_gb: int
+    - enabled: bool
+    - priority: int
+    - created_at: datetime
+    - updated_at: datetime
+    --
+    + should_delete(recording: Recording): bool
+    + get_cleanup_candidates(): list
+}
+
+ENTITY(RecordingSchedule, "RecordingSchedule") {
+    - id: int
+    - platform: str
+    - streamer_id: str
+    - streamer_name: str
+    - quality: str
+    - output_path: str
+    - custom_arguments: str
+    - rotation_policy_id: int
+    - enabled: bool
+    - created_at: datetime
+    - updated_at: datetime
+    --
+    + is_active(): bool
+    + get_next_recording_time(): datetime
+    + get_output_filename(): str
+}
+
+ENTITY(Recording, "Recording") {
+    - id: int
+    - schedule_id: int
+    - file_path: str
+    - file_name: str
+    - file_size: int
+    - start_time: datetime
+    - end_time: datetime
+    - duration: int
+    - platform: str
+    - streamer_id: str
+    - streamer_name: str
+    - quality: str
+    - status: str
+    - is_favorite: bool
+    - created_at: datetime
+    - updated_at: datetime
+    --
+    + is_protected(): bool
+    + get_duration(): int
+    + mark_as_favorite(): void
+    + unmark_favorite(): void
+}
+
+ENTITY(RecordingJob, "RecordingJob") {
+    - id: int
+    - schedule_id: int
+    - status: str
+    - start_time: datetime
+    - end_time: datetime
+    - error_message: str
+    - created_at: datetime
+    - updated_at: datetime
+    --
+    + is_running(): bool
+    + is_completed(): bool
+    + is_failed(): bool
+    + get_duration(): int
+}
+
+' Services
+SERVICE(StreamlinkService, "StreamlinkService") {
+    - platform_strategies: dict
+    --
+    + get_stream_url(platform: str, streamer_id: str): str
+    + start_recording(schedule: RecordingSchedule): RecordingJob
+    + stop_recording(job: RecordingJob): void
+    + get_available_qualities(platform: str, streamer_id: str): list
+}
+
+SERVICE(SchedulerService, "SchedulerService") {
+    - scheduler: APScheduler
+    --
+    + add_schedule(schedule: RecordingSchedule): void
+    + remove_schedule(schedule_id: int): void
+    + update_schedule(schedule: RecordingSchedule): void
+    + get_job_status(job_id: int): str
+}
+
+SERVICE(RotationService, "RotationService") {
+    - policies: list[RotationPolicy]
+    --
+    + apply_rotation_policy(policy: RotationPolicy): void
+    + cleanup_old_recordings(): void
+    + protect_favorites(): void
+    + get_storage_usage(): dict
+}
+
+SERVICE(AuthenticationService, "AuthenticationService") {
+    - password_hasher: PasswordHasher
+    --
+    + authenticate_user(username: str, password: str): User
+    + create_user(username: str, password: str, is_admin: bool): User
+    + verify_password(password: str, hash: str): bool
+}
+
+' Repositories
+REPOSITORY(UserRepository, "UserRepository") {
+    + get_by_username(username: str): User
+    + get_by_id(user_id: int): User
+    + create(user: User): User
+    + update(user: User): User
+    + delete(user_id: int): void
+}
+
+REPOSITORY(RecordingRepository, "RecordingRepository") {
+    + get_by_schedule(schedule_id: int): list[Recording]
+    + get_favorites(): list[Recording]
+    + get_by_date_range(start: datetime, end: datetime): list[Recording]
+    + create(recording: Recording): Recording
+    + update(recording: Recording): Recording
+    + delete(recording_id: int): void
+}
+
+REPOSITORY(ScheduleRepository, "ScheduleRepository") {
+    + get_active_schedules(): list[RecordingSchedule]
+    + get_by_platform(platform: str): list[RecordingSchedule]
+    + get_by_streamer(streamer_id: str): list[RecordingSchedule]
+    + create(schedule: RecordingSchedule): RecordingSchedule
+    + update(schedule: RecordingSchedule): RecordingSchedule
+    + delete(schedule_id: int): void
+}
+
+' Relationships
+User ||--o{ RecordingSchedule : manages
+PlatformConfig ||--o{ RecordingSchedule : configures
+RotationPolicy ||--o{ RecordingSchedule : applies_to
+RecordingSchedule ||--o{ Recording : produces
+RecordingSchedule ||--o{ RecordingJob : executes
+
+StreamlinkService --> PlatformConfig : uses
+SchedulerService --> RecordingSchedule : manages
+SchedulerService --> RecordingJob : tracks
+RotationService --> RotationPolicy : enforces
+RotationService --> Recording : cleans_up
+AuthenticationService --> User : manages
+
+UserRepository --> User : manages
+RecordingRepository --> Recording : manages
+ScheduleRepository --> RecordingSchedule : manages
+
+' Notes
+note right of User : Core user entity\nwith authentication
+note right of RecordingSchedule : Recording configuration\nwith platform settings
+note right of Recording : Actual recording file\nwith metadata
+note right of RotationPolicy : File cleanup rules\nwith multiple strategies
+note right of StreamlinkService : Handles stream processing\nwith platform strategies
+note right of SchedulerService : Manages recording jobs\nwith background execution
+
+@enduml

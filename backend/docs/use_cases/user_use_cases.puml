@@ -1,0 +1,139 @@
+@startuml Regular User Use Cases
+
+!define ACTOR(name,desc) actor name as "desc" << (A,#E1F5FE) >>
+!define USECASE(name,desc) usecase name as "desc" << (U,#FFF3E0) >>
+!define SYSTEM(name,desc) rectangle name as "desc" << (S,#E8F5E8) >>
+
+title Regular User - Use Case Diagram
+
+' Actors
+ACTOR(user, "Regular User")
+
+' System Boundary
+SYSTEM(user_system, "User Management System") {
+
+    ' Authentication
+    package "Authentication" {
+        USECASE(login, "Login with Basic Auth")
+        USECASE(logout, "Logout")
+        USECASE(change_password, "Change Password")
+    }
+
+    ' Recording Management
+    package "Recording Management" {
+        USECASE(browse_recordings, "Browse Recordings")
+        USECASE(view_recording_details, "View Recording Details")
+        USECASE(download_recording, "Download Recording")
+        USECASE(delete_recording, "Delete Recording")
+        USECASE(play_recording, "Play Recording")
+        USECASE(preview_recording, "Preview Recording")
+    }
+
+    ' Recording Organization
+    package "Recording Organization" {
+        USECASE(manage_favorites, "Manage Favorites")
+        USECASE(mark_favorite, "Mark as Favorite")
+        USECASE(unmark_favorite, "Remove from Favorites")
+        USECASE(search_recordings, "Search Recordings")
+        USECASE(filter_recordings, "Filter Recordings")
+        USECASE(sort_recordings, "Sort Recordings")
+    }
+
+    ' Schedule Management
+    package "Schedule Management" {
+        USECASE(manage_schedules, "Manage Recording Schedules")
+        USECASE(create_schedule, "Create Recording Schedule")
+        USECASE(edit_schedule, "Edit Schedule")
+        USECASE(delete_schedule, "Delete Schedule")
+        USECASE(enable_schedule, "Enable Schedule")
+        USECASE(disable_schedule, "Disable Schedule")
+        USECASE(test_schedule, "Test Schedule")
+    }
+
+    ' File Explorer Interface
+    package "File Explorer UI" {
+        USECASE(navigate_folders, "Navigate Folders")
+        USECASE(bulk_operations, "Bulk Operations")
+        USECASE(drag_drop, "Drag & Drop Files")
+        USECASE(select_multiple, "Select Multiple Files")
+        USECASE(copy_recordings, "Copy Recordings")
+        USECASE(move_recordings, "Move Recordings")
+    }
+
+    ' System Information
+    package "System Information" {
+        USECASE(view_system_status, "View System Status")
+        USECASE(view_storage_usage, "View Storage Usage")
+        USECASE(view_job_status, "View Job Status")
+        USECASE(view_job_history, "View Job History")
+    }
+}
+
+' Actor Relationships
+user --> login
+user --> logout
+user --> change_password
+user --> browse_recordings
+user --> manage_favorites
+user --> manage_schedules
+user --> navigate_folders
+user --> view_system_status
+
+' Include/Extend Relationships
+' Authentication Flow
+login ..> change_password : <<extend>>
+
+' Recording Management Flow
+browse_recordings ..> view_recording_details : <<include>>
+browse_recordings ..> search_recordings : <<extend>>
+browse_recordings ..> filter_recordings : <<extend>>
+browse_recordings ..> sort_recordings : <<extend>>
+
+view_recording_details ..> download_recording : <<extend>>
+view_recording_details ..> delete_recording : <<extend>>
+view_recording_details ..> play_recording : <<extend>>
+view_recording_details ..> preview_recording : <<extend>>
+view_recording_details ..> mark_favorite : <<extend>>
+view_recording_details ..> unmark_favorite : <<extend>>
+
+' Favorites Management Flow
+manage_favorites ..> mark_favorite : <<include>>
+manage_favorites ..> unmark_favorite : <<include>>
+manage_favorites ..> search_recordings : <<extend>>
+
+' Schedule Management Flow
+manage_schedules ..> create_schedule : <<include>>
+manage_schedules ..> edit_schedule : <<include>>
+manage_schedules ..> delete_schedule : <<include>>
+manage_schedules ..> enable_schedule : <<include>>
+manage_schedules ..> disable_schedule : <<include>>
+manage_schedules ..> test_schedule : <<extend>>
+
+' File Explorer Flow
+navigate_folders ..> select_multiple : <<include>>
+navigate_folders ..> bulk_operations : <<extend>>
+navigate_folders ..> drag_drop : <<extend>>
+
+bulk_operations ..> copy_recordings : <<include>>
+bulk_operations ..> move_recordings : <<include>>
+bulk_operations ..> delete_recording : <<include>>
+bulk_operations ..> mark_favorite : <<include>>
+
+' System Information Flow
+view_system_status ..> view_storage_usage : <<include>>
+view_system_status ..> view_job_status : <<include>>
+view_system_status ..> view_job_history : <<extend>>
+
+' Cross-package relationships
+search_recordings ..> filter_recordings : <<extend>>
+filter_recordings ..> sort_recordings : <<extend>>
+
+' Notes
+note right of login : Basic Authentication\nUsername/Password
+note right of browse_recordings : File Explorer\nStyle Interface
+note right of manage_favorites : Protects from\nrotation cleanup
+note right of manage_schedules : Platform-specific\nconfigurations
+note right of navigate_folders : Intuitive file\nmanagement
+note right of bulk_operations : Multi-file\noperations
+
+@enduml

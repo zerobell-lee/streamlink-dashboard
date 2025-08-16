@@ -1,0 +1,88 @@
+@startuml Use Case Overview
+
+!define ACTOR(name,desc) actor name as "desc" << (A,#E1F5FE) >>
+!define USECASE(name,desc) usecase name as "desc" << (U,#FFF3E0) >>
+!define SYSTEM(name,desc) rectangle name as "desc" << (S,#E8F5E8) >>
+
+title Streamlink Dashboard - Use Case Overview
+
+' Actors
+ACTOR(admin, "Admin User")
+ACTOR(user, "Regular User")
+ACTOR(scheduler, "Scheduler System")
+ACTOR(streamlink, "Streamlink Engine")
+ACTOR(rotation, "Rotation Service")
+
+' System Boundary
+SYSTEM(streamlink_dashboard, "Streamlink Dashboard System") {
+
+    ' High-level Use Cases
+    package "User Management" {
+        USECASE(manage_users, "Manage Users")
+        USECASE(authenticate, "Authenticate")
+    }
+
+    package "Recording Management" {
+        USECASE(manage_recordings, "Manage Recordings")
+        USECASE(organize_recordings, "Organize Recordings")
+    }
+
+    package "Schedule Management" {
+        USECASE(manage_schedules, "Manage Schedules")
+        USECASE(execute_recordings, "Execute Recordings")
+    }
+
+    package "System Administration" {
+        USECASE(configure_system, "Configure System")
+        USECASE(monitor_system, "Monitor System")
+    }
+
+    package "File Management" {
+        USECASE(manage_files, "Manage Files")
+        USECASE(cleanup_files, "Cleanup Files")
+    }
+}
+
+' Actor Relationships
+admin --> manage_users
+admin --> configure_system
+admin --> monitor_system
+
+user --> authenticate
+user --> manage_recordings
+user --> organize_recordings
+user --> manage_schedules
+user --> manage_files
+
+scheduler --> execute_recordings
+scheduler --> monitor_system
+
+streamlink --> execute_recordings
+
+rotation --> cleanup_files
+
+' Include/Extend Relationships
+manage_users ..> authenticate : <<include>>
+manage_recordings ..> organize_recordings : <<include>>
+manage_schedules ..> execute_recordings : <<include>>
+configure_system ..> monitor_system : <<include>>
+manage_files ..> cleanup_files : <<extend>>
+
+' Notes
+note right of admin : Full system\nadministration
+note right of user : Recording and\nschedule management
+note right of scheduler : Automated\njob execution
+note right of streamlink : Stream\nprocessing
+note right of rotation : File cleanup\nand rotation
+
+' Legend
+legend right
+    |= Type |= Description |
+    | Actor | System User or Component |
+    | Use Case | High-level System Functionality |
+    | Include | Required relationship |
+    | Extend | Optional relationship |
+    | System | System boundary |
+endlegend
+
+@enduml

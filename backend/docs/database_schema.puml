@@ -1,0 +1,128 @@
+@startuml Streamlink Dashboard Database Schema
+
+!define TABLE(name,desc) class name as "desc" << (T,#FFAAAA) >>
+!define PK(x) <b>x</b>
+!define FK(x) <i>x</i>
+!define UNIQUE(x) <u>x</u>
+
+title Streamlink Dashboard Database Schema
+
+' Authentication
+TABLE(users, "USERS") {
+    PK(id) : INTEGER
+    UNIQUE(username) : VARCHAR(50)
+    password_hash : VARCHAR(255)
+    is_admin : BOOLEAN
+    is_active : BOOLEAN
+    created_at : DATETIME
+    last_login : DATETIME
+    updated_at : DATETIME
+}
+
+' Configuration
+TABLE(platform_configs, "PLATFORM_CONFIGS") {
+    PK(id) : INTEGER
+    platform : VARCHAR(50)
+    stream_url_pattern : VARCHAR(500)
+    quality_options : VARCHAR(200)
+    default_quality : VARCHAR(20)
+    additional_settings : JSON
+    created_at : DATETIME
+    updated_at : DATETIME
+}
+
+TABLE(system_configs, "SYSTEM_CONFIGS") {
+    PK(id) : INTEGER
+    UNIQUE(config_key) : VARCHAR(100)
+    config_value : TEXT
+    description : TEXT
+    created_at : DATETIME
+    updated_at : DATETIME
+}
+
+' Rotation Policy
+TABLE(rotation_policies, "ROTATION_POLICIES") {
+    PK(id) : INTEGER
+    name : VARCHAR(100)
+    policy_type : VARCHAR(20)  -- 'time', 'count', 'size'
+    max_age_days : INTEGER     -- for time-based
+    max_count : INTEGER        -- for count-based
+    max_size_gb : INTEGER      -- for size-based
+    enabled : BOOLEAN
+    priority : INTEGER         -- higher number = higher priority
+    created_at : DATETIME
+    updated_at : DATETIME
+}
+
+' Scheduling
+TABLE(recording_schedules, "RECORDING_SCHEDULES") {
+    PK(id) : INTEGER
+    platform : VARCHAR(50)
+    streamer_id : VARCHAR(100)
+    streamer_name : VARCHAR(100)
+    quality : VARCHAR(20)
+    output_path : VARCHAR(500)
+    custom_arguments : TEXT
+    FK(rotation_policy_id) : INTEGER
+    enabled : BOOLEAN
+    created_at : DATETIME
+    updated_at : DATETIME
+}
+
+' Recordings
+TABLE(recordings, "RECORDINGS") {
+    PK(id) : INTEGER
+    FK(schedule_id) : INTEGER
+    file_path : VARCHAR(500)
+    file_name : VARCHAR(255)
+    file_size : BIGINT
+    start_time : DATETIME
+    end_time : DATETIME
+    duration : INTEGER
+    platform : VARCHAR(50)
+    streamer_id : VARCHAR(100)
+    streamer_name : VARCHAR(100)
+    quality : VARCHAR(20)
+    status : VARCHAR(20)
+    is_favorite : BOOLEAN
+    created_at : DATETIME
+    updated_at : DATETIME
+}
+
+' Job Management
+TABLE(recording_jobs, "RECORDING_JOBS") {
+    PK(id) : INTEGER
+    FK(schedule_id) : INTEGER
+    status : VARCHAR(20)
+    start_time : DATETIME
+    end_time : DATETIME
+    error_message : TEXT
+    created_at : DATETIME
+    updated_at : DATETIME
+}
+
+' Relationships
+recording_schedules ||--o{ recordings : "has many"
+recording_schedules ||--o{ recording_jobs : "has many"
+rotation_policies ||--o{ recording_schedules : "applies to"
+
+' Notes
+note right of users : Authentication & User Management
+note right of platform_configs : Platform-specific Settings
+note right of system_configs : Global System Configuration
+note right of rotation_policies : File Rotation & Cleanup Policies
+note right of recording_schedules : Recording Schedule Management
+note right of recordings : Actual Recording Files
+note right of recording_jobs : Recording Job Execution
+
+' Legend
+legend right
+    |= Type |= Description |
+    | PK | Primary Key |
+    | FK | Foreign Key |
+    | UNIQUE | Unique Constraint |
+    | JSON | JSON Data Type |
+    | All tables include created_at, updated_at timestamps |
+endlegend
+
+@enduml

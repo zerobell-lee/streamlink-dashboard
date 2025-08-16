@@ -1,0 +1,126 @@
+@startuml Streamlink Dashboard System Architecture
+
+!define COMPONENT(name,desc) component name as "desc" << (C,#E1F5FE) >>
+!define SERVICE(name,desc) component name as "desc" << (S,#FFF3E0) >>
+!define DATABASE(name,desc) database name as "desc" << (D,#E8F5E8) >>
+
+title Streamlink Dashboard - High-Level System Architecture
+
+' Frontend Layer
+package "Frontend Layer" {
+    COMPONENT(web_ui, "Web Dashboard UI") {
+        - File Explorer Style Interface
+        - Recording Management
+        - Schedule Configuration
+        - Settings Management
+        - Basic Authentication
+    }
+}
+
+' API Layer
+package "API Layer" {
+    SERVICE(fastapi, "FastAPI Backend") {
+        - RESTful API Endpoints
+        - Authentication & Authorization
+        - Request/Response Handling
+        - WebSocket Support
+    }
+}
+
+' Business Logic Layer
+package "Business Logic Layer" {
+    SERVICE(scheduler, "APScheduler Service") {
+        - Recording Job Scheduling
+        - Periodic Task Management
+        - Job Status Tracking
+    }
+    
+    SERVICE(streamlink, "Streamlink Service") {
+        - Stream URL Acquisition
+        - Platform Strategy Pattern
+        - Recording Execution
+        - Quality Management
+    }
+    
+    SERVICE(rotation, "Rotation Policy Service") {
+        - File Cleanup Logic
+        - Policy Enforcement
+        - Favorites Protection
+        - Storage Management
+    }
+}
+
+' Data Layer
+package "Data Layer" {
+    DATABASE(sqlite, "SQLite Database") {
+        - User Management
+        - Platform Configurations
+        - System Settings
+        - Recording Schedules
+        - Recording Files
+        - Job History
+        - Rotation Policies
+    }
+}
+
+' External Systems
+package "External Systems" {
+    component "Streaming Platforms" as platforms {
+        - Twitch
+        - YouTube
+        - AfreecaTV
+        - etc.
+    }
+    
+    component "File System" as filesystem {
+        - Recording Storage
+        - File Operations
+        - Directory Management
+    }
+}
+
+' Relationships
+web_ui --> fastapi : HTTP/WebSocket
+fastapi --> scheduler : Internal API
+fastapi --> streamlink : Internal API
+fastapi --> rotation : Internal API
+fastapi --> sqlite : ORM (SQLAlchemy)
+
+scheduler --> streamlink : Job Execution
+scheduler --> sqlite : Job Status
+streamlink --> platforms : Stream URLs
+streamlink --> filesystem : File Writing
+rotation --> filesystem : File Cleanup
+rotation --> sqlite : Policy Data
+
+' Data Flow
+note right of web_ui : User Interface\n- File Explorer Style\n- Drag & Drop\n- Real-time Updates
+note right of fastapi : API Gateway\n- RESTful Endpoints\n- Authentication\n- CORS Handling
+note right of scheduler : Job Orchestration\n- Cron-like Scheduling\n- Background Tasks\n- Error Handling
+note right of streamlink : Stream Processing\n- Multi-platform Support\n- Quality Selection\n- Error Recovery
+note right of rotation : Storage Management\n- Automatic Cleanup\n- Policy Enforcement\n- Favorites Protection
+
+' Deployment
+package "Deployment" {
+    component "Docker Container" as docker {
+        - Single Container
+        - Volume Mounting
+        - Environment Variables
+    }
+    
+    component "Synology NAS" as nas {
+        - Docker Support
+        - Volume Management
+        - Network Access
+    }
+}
+
+docker --> nas : Host System
+web_ui --> docker : Containerized
+fastapi --> docker : Containerized
+scheduler --> docker : Containerized
+streamlink --> docker : Containerized
+rotation --> docker : Containerized
+sqlite --> docker : Volume Mount
+
+@enduml

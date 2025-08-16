@@ -1,0 +1,162 @@
+@startuml System Use Cases
+
+!define ACTOR(name,desc) actor name as "desc" << (A,#E1F5FE) >>
+!define USECASE(name,desc) usecase name as "desc" << (U,#FFF3E0) >>
+!define SYSTEM(name,desc) rectangle name as "desc" << (S,#E8F5E8) >>
+
+title System Actors & Automated Processes
+
+' Actors
+ACTOR(scheduler, "Scheduler System")
+ACTOR(streamlink, "Streamlink Engine")
+ACTOR(rotation, "Rotation Service")
+ACTOR(monitor, "System Monitor")
+
+' System Boundary
+SYSTEM(system_processes, "Automated System Processes") {
+
+    ' Recording Execution
+    package "Recording Execution" {
+        USECASE(execute_scheduled_recording, "Execute Scheduled Recording")
+        USECASE(check_stream_status, "Check Stream Status")
+        USECASE(start_recording, "Start Recording")
+        USECASE(stop_recording, "Stop Recording")
+        USECASE(handle_recording_error, "Handle Recording Error")
+        USECASE(update_recording_status, "Update Recording Status")
+    }
+
+    ' Stream Management
+    package "Stream Management" {
+        USECASE(get_stream_url, "Get Stream URL")
+        USECASE(validate_stream, "Validate Stream")
+        USECASE(select_quality, "Select Quality")
+        USECASE(monitor_stream_health, "Monitor Stream Health")
+        USECASE(handle_stream_disconnect, "Handle Stream Disconnect")
+    }
+
+    ' File Management
+    package "File Management" {
+        USECASE(save_recording_file, "Save Recording File")
+        USECASE(update_file_metadata, "Update File Metadata")
+        USECASE(validate_file_integrity, "Validate File Integrity")
+        USECASE(handle_storage_full, "Handle Storage Full")
+        USECASE(cleanup_temp_files, "Cleanup Temporary Files")
+    }
+
+    ' Rotation & Cleanup
+    package "Rotation & Cleanup" {
+        USECASE(apply_rotation_policy, "Apply Rotation Policy")
+        USECASE(cleanup_old_recordings, "Cleanup Old Recordings")
+        USECASE(protect_favorites, "Protect Favorite Recordings")
+        USECASE(calculate_storage_usage, "Calculate Storage Usage")
+        USECASE(notify_cleanup_results, "Notify Cleanup Results")
+    }
+
+    ' System Monitoring
+    package "System Monitoring" {
+        USECASE(monitor_system_health, "Monitor System Health")
+        USECASE(check_disk_space, "Check Disk Space")
+        USECASE(monitor_job_queue, "Monitor Job Queue")
+        USECASE(detect_system_issues, "Detect System Issues")
+        USECASE(generate_system_report, "Generate System Report")
+    }
+
+    ' Error Handling
+    package "Error Handling" {
+        USECASE(handle_system_error, "Handle System Error")
+        USECASE(log_error, "Log Error")
+        USECASE(retry_failed_operation, "Retry Failed Operation")
+        USECASE(notify_admin, "Notify Admin")
+        USECASE(escalate_error, "Escalate Error")
+    }
+}
+
+' Actor Relationships
+scheduler --> execute_scheduled_recording
+scheduler --> check_stream_status
+scheduler --> monitor_job_queue
+
+streamlink --> start_recording
+streamlink --> stop_recording
+streamlink --> get_stream_url
+streamlink --> validate_stream
+streamlink --> select_quality
+
+rotation --> apply_rotation_policy
+rotation --> cleanup_old_recordings
+rotation --> protect_favorites
+
+monitor --> monitor_system_health
+monitor --> check_disk_space
+monitor --> detect_system_issues
+
+' Include/Extend Relationships
+' Recording Execution Flow
+execute_scheduled_recording ..> check_stream_status : <<include>>
+execute_scheduled_recording ..> start_recording : <<include>>
+execute_scheduled_recording ..> stop_recording : <<include>>
+execute_scheduled_recording ..> update_recording_status : <<include>>
+execute_scheduled_recording ..> handle_recording_error : <<extend>>
+
+start_recording ..> get_stream_url : <<include>>
+start_recording ..> validate_stream : <<include>>
+start_recording ..> select_quality : <<include>>
+start_recording ..> save_recording_file : <<include>>
+
+stop_recording ..> update_file_metadata : <<include>>
+stop_recording ..> validate_file_integrity : <<include>>
+
+' Stream Management Flow
+get_stream_url ..> validate_stream : <<include>>
+validate_stream ..> select_quality : <<extend>>
+validate_stream ..> handle_stream_disconnect : <<extend>>
+
+monitor_stream_health ..> handle_stream_disconnect : <<extend>>
+monitor_stream_health ..> handle_recording_error : <<extend>>
+
+' File Management Flow
+save_recording_file ..> update_file_metadata : <<include>>
+save_recording_file ..> handle_storage_full : <<extend>>
+save_recording_file ..> cleanup_temp_files : <<extend>>
+
+update_file_metadata ..> validate_file_integrity : <<include>>
+
+' Rotation & Cleanup Flow
+apply_rotation_policy ..> cleanup_old_recordings : <<include>>
+apply_rotation_policy ..> protect_favorites : <<include>>
+apply_rotation_policy ..> calculate_storage_usage : <<include>>
+apply_rotation_policy ..> notify_cleanup_results : <<extend>>
+
+cleanup_old_recordings ..> protect_favorites : <<include>>
+cleanup_old_recordings ..> calculate_storage_usage : <<include>>
+
+' System Monitoring Flow
+monitor_system_health ..> check_disk_space : <<include>>
+monitor_system_health ..> monitor_job_queue : <<include>>
+monitor_system_health ..> detect_system_issues : <<extend>>
+monitor_system_health ..> generate_system_report : <<extend>>
+
+detect_system_issues ..> handle_system_error : <<include>>
+detect_system_issues ..> notify_admin : <<extend>>
+
+' Error Handling Flow
+handle_system_error ..> log_error : <<include>>
+handle_system_error ..> retry_failed_operation : <<extend>>
+handle_system_error ..> escalate_error : <<extend>>
+
+retry_failed_operation ..> notify_admin : <<extend>>
+escalate_error ..> notify_admin : <<include>>
+
+' Cross-package relationships
+handle_recording_error ..> log_error : <<include>>
+handle_stream_disconnect ..> handle_recording_error : <<extend>>
+handle_storage_full ..> notify_admin : <<extend>>
+
+' Notes
+note right of execute_scheduled_recording : Automated by\nAPScheduler
+note right of apply_rotation_policy : Time/Count/Size\nbased cleanup
+note right of monitor_system_health : Continuous\nmonitoring
+note right of handle_system_error : Graceful error\nhandling
+note right of protect_favorites : Prevents deletion\nof favorites
+
+@enduml

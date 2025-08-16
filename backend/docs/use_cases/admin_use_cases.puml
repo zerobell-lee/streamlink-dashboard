@@ -1,0 +1,114 @@
+@startuml Admin User Use Cases
+
+!define ACTOR(name,desc) actor name as "desc" << (A,#E1F5FE) >>
+!define USECASE(name,desc) usecase name as "desc" << (U,#FFF3E0) >>
+!define SYSTEM(name,desc) rectangle name as "desc" << (S,#E8F5E8) >>
+
+title Admin User - Use Case Diagram
+
+' Actors
+ACTOR(admin, "Admin User")
+
+' System Boundary
+SYSTEM(admin_system, "Admin Management System") {
+
+    ' Authentication
+    package "Authentication" {
+        USECASE(login, "Login with Basic Auth")
+        USECASE(logout, "Logout")
+    }
+
+    ' User Management
+    package "User Management" {
+        USECASE(manage_users, "Manage Users")
+        USECASE(create_user, "Create New User")
+        USECASE(edit_user, "Edit User")
+        USECASE(delete_user, "Delete User")
+        USECASE(disable_user, "Disable User")
+        USECASE(reset_password, "Reset User Password")
+    }
+
+    ' System Administration
+    package "System Administration" {
+        USECASE(configure_system, "Configure System Settings")
+        USECASE(view_system_status, "View System Status")
+        USECASE(view_storage_usage, "View Storage Usage")
+        USECASE(backup_database, "Backup Database")
+        USECASE(restore_database, "Restore Database")
+        USECASE(view_logs, "View System Logs")
+    }
+
+    ' Platform Management
+    package "Platform Management" {
+        USECASE(manage_platforms, "Manage Platform Configurations")
+        USECASE(configure_platform, "Configure Platform Settings")
+        USECASE(test_platform_config, "Test Platform Configuration")
+        USECASE(import_platform_config, "Import Platform Config")
+        USECASE(export_platform_config, "Export Platform Config")
+    }
+
+    ' Rotation Policy Management
+    package "Rotation Policy Management" {
+        USECASE(manage_rotation_policies, "Manage Rotation Policies")
+        USECASE(create_rotation_policy, "Create Rotation Policy")
+        USECASE(edit_rotation_policy, "Edit Rotation Policy")
+        USECASE(delete_rotation_policy, "Delete Rotation Policy")
+        USECASE(assign_policy_to_schedule, "Assign Policy to Schedule")
+        USECASE(manual_cleanup, "Manual Cleanup")
+    }
+
+    ' Monitoring & Maintenance
+    package "Monitoring & Maintenance" {
+        USECASE(monitor_system, "Monitor System Health")
+        USECASE(view_job_history, "View Job History")
+        USECASE(cancel_job, "Cancel Running Job")
+        USECASE(retry_failed_job, "Retry Failed Job")
+        USECASE(cleanup_system, "System Cleanup")
+    }
+}
+
+' Actor Relationships
+admin --> login
+admin --> logout
+admin --> manage_users
+admin --> configure_system
+admin --> backup_database
+admin --> restore_database
+admin --> manage_platforms
+admin --> manage_rotation_policies
+admin --> monitor_system
+
+' Include/Extend Relationships
+manage_users ..> create_user : <<include>>
+manage_users ..> edit_user : <<include>>
+manage_users ..> delete_user : <<include>>
+manage_users ..> disable_user : <<include>>
+manage_users ..> reset_password : <<include>>
+
+configure_system ..> view_system_status : <<include>>
+configure_system ..> view_storage_usage : <<include>>
+
+manage_platforms ..> configure_platform : <<include>>
+manage_platforms ..> test_platform_config : <<include>>
+manage_platforms ..> import_platform_config : <<extend>>
+manage_platforms ..> export_platform_config : <<extend>>
+
+manage_rotation_policies ..> create_rotation_policy : <<include>>
+manage_rotation_policies ..> edit_rotation_policy : <<include>>
+manage_rotation_policies ..> delete_rotation_policy : <<include>>
+manage_rotation_policies ..> assign_policy_to_schedule : <<include>>
+manage_rotation_policies ..> manual_cleanup : <<extend>>
+
+monitor_system ..> view_job_history : <<include>>
+monitor_system ..> cancel_job : <<extend>>
+monitor_system ..> retry_failed_job : <<extend>>
+monitor_system ..> cleanup_system : <<extend>>
+
+' Notes
+note right of login : Basic Authentication\nUsername/Password
+note right of manage_users : Full CRUD operations\nfor user management
+note right of configure_system : Database-based\nconfiguration
+note right of manage_platforms : Platform-specific\nstreamlink settings
+note right of manage_rotation_policies : File cleanup\npolicies
+
+@enduml

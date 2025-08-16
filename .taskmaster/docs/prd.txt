@@ -1,0 +1,201 @@
+<context>
+# Overview  
+Streamlink Dashboard is a web-based application for automatically recording and managing live streams from various streaming platforms using Streamlink. It solves the problem of manually managing stream recordings by providing automated scheduling, file management, and a user-friendly web interface. The target users are stream enthusiasts, content creators, and anyone who wants to automatically record live streams for later viewing. The value lies in its automation capabilities, multi-platform support, and NAS-friendly design for home/office environments.
+
+# Core Features  
+## Real-time Streaming Recording
+- **What it does**: Automatically records live streams using Streamlink engine
+- **Why it's important**: Eliminates manual intervention for stream recording
+- **How it works**: Monitors streamer status and automatically starts/stops recording when streams go live/offline
+
+## Multi-platform Support with Strategy Pattern
+- **What it does**: Supports multiple streaming platforms (Twitch, YouTube, AfreecaTV, etc.)
+- **Why it's important**: Users can manage recordings from different platforms in one place
+- **How it works**: Platform-specific strategies handle different API requirements and stream URL extraction
+
+## Web Dashboard with File Explorer UI
+- **What it does**: Provides intuitive file management interface similar to Windows File Explorer
+- **Why it's important**: Familiar interface reduces learning curve for users
+- **How it works**: React-based frontend with drag-and-drop, file preview, and management capabilities
+
+## Automated Scheduling System
+- **What it does**: Allows users to set up automatic recording schedules for specific streamers
+- **Why it's important**: Ensures no streams are missed without manual monitoring
+- **How it works**: Background scheduler checks streamer status and triggers recordings
+
+## Smart File Management with Rotation
+- **What it does**: Automatically manages storage by deleting old files based on time, count, or size policies
+- **Why it's important**: Prevents storage overflow and maintains organized file structure
+- **How it works**: Configurable policies that preserve favorite files while cleaning up old content
+
+## Favorites System
+- **What it does**: Allows users to mark important recordings as favorites
+- **Why it's important**: Protects valuable content from automatic deletion
+- **How it works**: Database flag that exempts files from rotation policies
+
+## Database-based Configuration
+- **What it does**: Stores all settings in SQLite database instead of environment variables
+- **Why it's important**: Enables runtime configuration changes without container recreation
+- **How it works**: Web interface for managing all settings stored in database
+
+## Basic Authentication
+- **What it does**: Simple username/password authentication for internal network access
+- **Why it's important**: Provides security without complex external authentication services
+- **How it works**: SHA-256 password hashing with web-based user management
+
+# User Experience  
+## User Personas
+- **Home Stream Enthusiast**: Wants to record favorite streamers automatically
+- **Content Creator**: Needs to archive streams for content analysis
+- **NAS Owner**: Wants to run the application on their Synology/QNAP NAS
+- **System Administrator**: Manages the application in office/home environment
+
+## Key User Flows
+1. **Initial Setup**: Install Docker container, configure basic auth, set up platform API keys
+2. **Schedule Management**: Add streamers, set recording preferences, configure rotation policies
+3. **File Management**: Browse recordings, mark favorites, download/delete files
+4. **Configuration**: Modify settings through web interface without container restart
+
+## UI/UX Considerations
+- File Explorer style interface for familiarity
+- Real-time status indicators for recording jobs
+- Responsive design for mobile/tablet access
+- Dark/light theme support
+- Drag-and-drop file operations
+</context>
+<PRD>
+# Technical Architecture  
+## System Components
+- **Frontend**: React + TypeScript with Material-UI
+- **Backend**: FastAPI + Python with SQLite database
+- **Streaming Engine**: Streamlink integration with platform strategies
+- **Scheduler**: APScheduler for background job management
+- **Authentication**: Basic Auth with SHA-256 password hashing
+- **File Management**: Custom file system abstraction with rotation policies
+
+## Data Models
+- **Recording Schedules**: Platform, streamer, quality, output path, custom arguments
+- **Recordings**: File metadata, duration, size, favorite status, platform info
+- **Platform Configs**: API keys, platform-specific settings
+- **System Configs**: Application settings, rotation policies, user preferences
+- **Users**: Authentication credentials and permissions
+- **Recording Jobs**: Job status, start/end times, error messages
+
+## APIs and Integrations
+- **Platform APIs**: Twitch API, YouTube Data API, custom scrapers
+- **Streamlink Integration**: Command-line interface for stream recording
+- **File System**: Local storage with network mount support
+- **WebSocket**: Real-time status updates to frontend
+
+## Infrastructure Requirements
+- **Container**: Single Docker container deployment
+- **Storage**: Persistent volumes for recordings, database, and logs
+- **Network**: Internal network access with Basic Auth
+- **Resources**: Minimum 2GB RAM, 2 CPU cores, 50GB storage
+
+# Development Roadmap  
+## Phase 1: Core Foundation (MVP)
+- Basic FastAPI backend with SQLite database
+- Simple React frontend with file listing
+- Basic authentication system
+- Single platform support (Twitch)
+- Manual recording trigger
+- Basic file management (list, delete)
+
+## Phase 2: Automation & Multi-platform
+- Automated scheduling system
+- Multi-platform strategy pattern implementation
+- Streamlink integration
+- Real-time status monitoring
+- Basic rotation policies
+- Favorites system
+
+## Phase 3: Enhanced UI & Configuration
+- File Explorer style interface
+- Database-based configuration management
+- Advanced rotation policies (time/count/size)
+- File preview and metadata display
+- Drag-and-drop operations
+- Mobile responsive design
+
+## Phase 4: Advanced Features
+- WebSocket real-time updates
+- Advanced file management (batch operations)
+- Export/import configurations
+- Backup and restore functionality
+- Performance optimizations
+- Comprehensive error handling
+
+## Phase 5: Production Readiness
+- Comprehensive logging and monitoring
+- Security hardening
+- Performance optimization
+- Documentation and deployment guides
+- Testing and quality assurance
+
+# Logical Dependency Chain
+## Foundation First (Phase 1)
+1. **Database Schema**: Design and implement SQLite tables
+2. **Basic Backend**: FastAPI with core endpoints
+3. **Authentication**: Basic Auth implementation
+4. **Simple Frontend**: React app with basic file listing
+5. **Single Platform**: Twitch integration for testing
+
+## Automation Layer (Phase 2)
+1. **Scheduler Service**: Background job management
+2. **Streamlink Integration**: Command execution and monitoring
+3. **Multi-platform Support**: Strategy pattern implementation
+4. **Real-time Monitoring**: Job status tracking
+5. **Basic File Management**: Rotation and favorites
+
+## User Experience (Phase 3)
+1. **File Explorer UI**: Familiar interface design
+2. **Configuration Management**: Database-based settings
+3. **Advanced File Operations**: Preview, metadata, batch operations
+4. **Responsive Design**: Mobile and tablet support
+
+## Production Features (Phase 4-5)
+1. **Real-time Updates**: WebSocket implementation
+2. **Advanced Management**: Export/import, backup/restore
+3. **Monitoring**: Comprehensive logging and error handling
+4. **Optimization**: Performance and security improvements
+
+# Risks and Mitigations  
+## Technical Challenges
+- **Risk**: Streamlink compatibility with different platforms
+- **Mitigation**: Implement platform-specific strategies and fallback mechanisms
+
+- **Risk**: File system performance with large numbers of files
+- **Mitigation**: Implement efficient file indexing and pagination
+
+- **Risk**: Memory usage during long recording sessions
+- **Mitigation**: Implement streaming file handling and memory monitoring
+
+## MVP Scope Management
+- **Risk**: Feature creep during development
+- **Mitigation**: Strict adherence to phase-based development with clear acceptance criteria
+
+- **Risk**: Complex UI requirements
+- **Mitigation**: Start with simple file listing and iterate based on user feedback
+
+## Resource Constraints
+- **Risk**: NAS resource limitations
+- **Mitigation**: Optimize for low-resource environments and implement resource monitoring
+
+- **Risk**: Storage space management
+- **Mitigation**: Implement aggressive rotation policies and storage monitoring
+
+# Appendix  
+## Research Findings
+- Streamlink supports 100+ platforms but requires platform-specific configuration
+- NAS users prefer simple authentication over complex OAuth flows
+- File Explorer UI is most familiar for file management tasks
+- Database-based configuration is preferred over environment variables for NAS deployment
+
+## Technical Specifications
+- **Python**: 3.8+ for modern async support
+- **React**: 18+ with TypeScript for type safety
+- **SQLite**: Built-in database for simplicity
+- **Docker**: Single container deployment
+- **Streamlink**: Latest stable version for platform support
+</PRD>

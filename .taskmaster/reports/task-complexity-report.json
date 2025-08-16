@@ -1,0 +1,133 @@
+{
+	"meta": {
+		"generatedAt": "2025-08-15T18:10:31.899Z",
+		"tasksAnalyzed": 15,
+		"totalTasks": 15,
+		"analysisCount": 15,
+		"thresholdScore": 5,
+		"projectName": "Taskmaster",
+		"usedResearch": true
+	},
+	"complexityAnalysis": [
+		{
+			"taskId": 1,
+			"taskTitle": "Design and Implement SQLite Database Schema",
+			"complexityScore": 7,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Break down the SQLite database schema implementation task into subtasks covering model definition, relationships, migrations, indexing, and testing. Include specific technical details for each subtask.",
+			"reasoning": "This task involves designing a complex relational database schema with 6 interconnected models, implementing SQLAlchemy ORM (v2.0+) which has significant API changes from v1.x, setting up migrations with Alembic, and implementing proper indexing and relationships. The async functionality adds additional complexity. The comprehensive testing strategy also indicates significant work."
+		},
+		{
+			"taskId": 2,
+			"taskTitle": "Implement FastAPI Backend Core",
+			"complexityScore": 8,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Break down the FastAPI backend core implementation into subtasks covering project structure, configuration management, middleware, dependency injection, error handling, and API documentation. Include specific technical requirements for each component.",
+			"reasoning": "This task requires setting up a comprehensive FastAPI application with multiple advanced features including middleware, dependency injection, error handling, and async database access. It also involves integrating Pydantic v2 settings with database-backed configuration. The project structure and organization adds architectural complexity. The task touches on many different components that need to work together seamlessly."
+		},
+		{
+			"taskId": 3,
+			"taskTitle": "Implement Basic Authentication System",
+			"complexityScore": 7,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Break down the authentication system implementation into subtasks covering password hashing, JWT token management, user management endpoints, rate limiting, and security features. Include specific security considerations for each component.",
+			"reasoning": "Authentication systems require careful implementation to avoid security vulnerabilities. This task involves password hashing, JWT token management, user CRUD operations, rate limiting, and session management. The security implications and the need for proper validation and protection against common attacks increase the complexity."
+		},
+		{
+			"taskId": 4,
+			"taskTitle": "Develop React Frontend Foundation",
+			"complexityScore": 8,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Break down the React frontend foundation development into subtasks covering project setup, UI component library integration, routing, state management, API communication, and form handling. Include specific technical requirements for each area.",
+			"reasoning": "This task involves setting up a modern React application with TypeScript, integrating multiple libraries (MUI, React Router, React Query, Zustand, React Hook Form, Zod), implementing responsive design, and establishing proper typing. The combination of client and server state management adds complexity, as does the need for proper error handling and loading states."
+		},
+		{
+			"taskId": 5,
+			"taskTitle": "Implement Twitch Platform Integration",
+			"complexityScore": 7,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Break down the Twitch platform integration task into subtasks covering strategy pattern implementation, API integration, stream status detection, URL generation, and webhook support. Include specific technical requirements for each component.",
+			"reasoning": "This task requires implementing the Strategy pattern, integrating with the Twitch API, handling authentication and token refresh, managing rate limits, and implementing webhooks. The need for proper error handling and caching adds complexity. The task also involves creating platform-specific endpoints and UI components."
+		},
+		{
+			"taskId": 6,
+			"taskTitle": "Implement Streamlink Integration",
+			"complexityScore": 7,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Break down the Streamlink integration task into subtasks covering process management, command generation, output parsing, monitoring, and configuration. Include specific technical requirements for subprocess handling and error management.",
+			"reasoning": "This task involves complex process management using Python's subprocess module with async functionality. It requires proper handling of process lifecycle, parsing output streams, detecting errors, and monitoring for crashes. The need to handle different quality options and custom arguments adds complexity. Process management is inherently complex due to potential race conditions and resource leaks."
+		},
+		{
+			"taskId": 7,
+			"taskTitle": "Implement APScheduler for Background Jobs",
+			"complexityScore": 8,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Break down the APScheduler implementation task into subtasks covering scheduler setup, job store configuration, job type implementation, status tracking, API endpoints, and error handling. Include specific technical requirements for each component.",
+			"reasoning": "This task involves setting up a complex scheduling system with multiple job types, persistence, error handling, and monitoring. The integration with SQLAlchemy for job storage adds complexity. The need for proper shutdown handling and job prioritization increases the difficulty. The task also requires creating a dashboard UI for monitoring and management."
+		},
+		{
+			"taskId": 8,
+			"taskTitle": "Implement File System Abstraction",
+			"complexityScore": 8,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Break down the file system abstraction task into subtasks covering basic file operations, metadata extraction, network storage support, concurrency handling, indexing, and streaming. Include specific technical requirements for each component.",
+			"reasoning": "This task involves creating a comprehensive abstraction layer for file operations with support for both local and network storage. It requires handling concurrent access, implementing file locking, creating an indexing system, and supporting file streaming. The need to handle different storage types and potential file system errors adds significant complexity."
+		},
+		{
+			"taskId": 9,
+			"taskTitle": "Implement Multi-platform Strategy Pattern",
+			"complexityScore": 8,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Break down the multi-platform strategy pattern implementation into subtasks covering base strategy refinement, platform-specific implementations, factory creation, unified API, and platform capability detection. Include specific technical requirements for each platform integration.",
+			"reasoning": "This task extends the platform integration to support multiple streaming platforms using the Strategy pattern. It requires implementing different strategies for various platforms with different APIs and authentication methods. The need to handle platform-specific features, rate limiting, and error handling adds complexity. The plugin system for adding new platforms increases the architectural complexity."
+		},
+		{
+			"taskId": 10,
+			"taskTitle": "Implement File Explorer Style UI",
+			"complexityScore": 8,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Break down the file explorer UI implementation into subtasks covering hierarchical view, component creation, drag-and-drop functionality, selection management, sorting/filtering, and file preview. Include specific technical requirements for each UI component.",
+			"reasoning": "This task involves creating a complex UI with multiple interactive components, drag-and-drop functionality, context menus, and file previews. The need for virtual scrolling, responsive design, and keyboard shortcuts adds complexity. The implementation of file selection (single, multiple, range) and preview functionality for different file types increases the difficulty."
+		},
+		{
+			"taskId": 11,
+			"taskTitle": "Implement Smart File Management with Rotation",
+			"complexityScore": 7,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Break down the smart file management task into subtasks covering rotation service creation, policy implementation, favorites system, simulation mode, and storage monitoring. Include specific technical requirements for each component.",
+			"reasoning": "This task involves implementing a complex file rotation system with multiple policies, combinations, and priorities. The need to protect favorite files, simulate deletion candidates, and monitor storage space adds complexity. The task also requires creating detailed reports and implementing proper error handling for rotation failures."
+		},
+		{
+			"taskId": 12,
+			"taskTitle": "Implement WebSocket for Real-time Updates",
+			"complexityScore": 7,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Break down the WebSocket implementation task into subtasks covering endpoint creation, message broker integration, connection management, authentication, and client-side integration. Include specific technical requirements for each component.",
+			"reasoning": "This task involves implementing WebSocket communication with multiple endpoints, message broker integration, and client reconnection logic. The need for authentication, proper error handling, and heartbeat mechanism adds complexity. The integration with React on the client side and the need for message serialization/deserialization increases the difficulty."
+		},
+		{
+			"taskId": 13,
+			"taskTitle": "Implement Database-based Configuration Management",
+			"complexityScore": 6,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Break down the configuration management task into subtasks covering service implementation, configuration categories, change notifications, and UI development. Include specific technical requirements for each component.",
+			"reasoning": "This task involves creating a system for storing and managing application configuration in the database. It requires implementing methods for getting, setting, and validating configuration values, as well as importing/exporting configurations. The need for configuration history, versioning, and change notifications adds complexity, but the overall concept is relatively straightforward."
+		},
+		{
+			"taskId": 14,
+			"taskTitle": "Implement Comprehensive Logging and Monitoring",
+			"complexityScore": 7,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Break down the logging and monitoring task into subtasks covering structured logging setup, log categories, rotation/archiving, search/filtering, and monitoring dashboard. Include specific technical requirements for each component.",
+			"reasoning": "This task involves implementing a comprehensive logging and monitoring system with structured logging, multiple categories, rotation, and search capabilities. The need for a monitoring dashboard with various metrics and alerting adds complexity. The implementation of async logging and log aggregation increases the difficulty."
+		},
+		{
+			"taskId": 15,
+			"taskTitle": "Create Docker Container Deployment",
+			"complexityScore": 6,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Break down the Docker container deployment task into subtasks covering Dockerfile creation, dependency installation, volume configuration, and deployment documentation. Include specific technical requirements for each component.",
+			"reasoning": "This task involves creating a multi-stage Dockerfile, configuring volume mounts, implementing health checks, and creating deployment documentation. The need for proper signal handling, startup scripts, and support for different architectures adds complexity. However, Docker containerization is a well-established practice with clear patterns to follow."
+		}
+	]
+}
