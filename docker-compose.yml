@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  streamlink-dashboard:
+    build: .
+    container_name: streamlink-dashboard
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app_data:/app/app_data
+    environment:
+      - APP_DATA_DIR=/app/app_data
+      - DEBUG=false
+      - LOG_LEVEL=INFO
+      - BASIC_AUTH_USERNAME=admin
+      - BASIC_AUTH_PASSWORD=admin123
+      - AUTO_START_SCHEDULER=true
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

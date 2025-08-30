@@ -29,8 +29,12 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
     async with AsyncSessionLocal() as session:
         try:
             yield session
+        except Exception:
+            await session.rollback()
+            raise
         finally:
-            await session.close()
+            # AsyncSessionLocal context manager handles closing automatically
+            pass
 
 
 async def init_db():

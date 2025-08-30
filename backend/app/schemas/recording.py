@@ -1,7 +1,7 @@
 """
 Recording Pydantic schemas
 """
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_serializer
 from typing import Optional
 from datetime import datetime
 
@@ -19,6 +19,7 @@ class RecordingBase(BaseModel):
     streamer_name: str = Field(..., description="Streamer name")
     quality: str = Field(..., description="Recording quality")
     status: str = Field(default="completed", description="Recording status")
+    error_message: Optional[str] = Field(None, description="Error message if recording failed")
     is_favorite: bool = Field(default=False, description="Favorite status")
 
 
@@ -37,9 +38,17 @@ class RecordingUpdate(BaseModel):
 class RecordingResponse(RecordingBase):
     """Schema for recording response"""
     id: int
-    schedule_id: int
+    schedule_id: Optional[int] = Field(None, description="Associated schedule ID (nullable)")
     created_at: datetime
     updated_at: datetime
+
+    @field_serializer('start_time', 'end_time', 'created_at', 'updated_at')
+    def serialize_datetime(self, dt: Optional[datetime], _info) -> Optional[str]:
+        """Serialize datetime using system timezone"""
+        if dt is None:
+            return None
+        # Use local system timezone
+        return dt.isoformat()
 
     class Config:
         from_attributes = True

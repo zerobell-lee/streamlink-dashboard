@@ -4,7 +4,10 @@ Application configuration settings
 from pydantic_settings import BaseSettings
 from typing import List, Optional
 import os
+from dotenv import load_dotenv
 
+# Load .env file if it exists
+load_dotenv()
 
 class Settings(BaseSettings):
     """Application settings"""
@@ -14,8 +17,10 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     VERSION: str = "1.0.0"
     
+    APP_DATA_DIR: str = os.getenv("APP_DATA_DIR", "/app/app_data")
+    
     # Database
-    DATABASE_URL: str = "sqlite+aiosqlite:///./streamlink_dashboard.db"
+    DATABASE_URL: str = f"sqlite+aiosqlite:///{APP_DATA_DIR}/database/streamlink_dashboard.db"
     
     # Security
     SECRET_KEY: str = "your-secret-key-change-in-production"
@@ -23,11 +28,13 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     
     # CORS
-    ALLOWED_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:8080"]
+    ALLOWED_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:3001", "http://localhost:8080"]
     
     # File Storage
-    RECORDINGS_DIR: str = "./recordings"
-    MAX_FILE_SIZE: int = 10 * 1024 * 1024 * 1024  # 10GB
+    
+    RECORDINGS_DIR: str = f"{APP_DATA_DIR}/recordings"
+    LOGS_DIR: str = f"{APP_DATA_DIR}/logs"
+    CONFIG_DIR: str = f"{APP_DATA_DIR}/config"
     
     # Streamlink
     STREAMLINK_PATH: str = "streamlink"
@@ -36,6 +43,7 @@ class Settings(BaseSettings):
     # Scheduler
     SCHEDULER_TIMEZONE: str = "UTC"
     SCHEDULER_MAX_INSTANCES: int = 1
+    AUTO_START_SCHEDULER: bool = True
     
     # Logging
     LOG_LEVEL: str = "INFO"

@@ -10,29 +10,30 @@ Streamlink Dashboard is a web application that automatically records and manages
 
 ### 🎥 Real-time Streaming Recording
 - **Streamlink-based**: Stable and efficient streaming recording
-- **Multi-platform Support**: Twitch, YouTube, AfreecaTV, and other platforms
+- **Multi-platform Support**: Twitch, YouTube, Sooplive, Chzzk(치지직)
 - **Platform-specific Customization**: Optimized Streamlink arguments for each platform
 
 ### 📅 Scheduling System
-- **Automatic Recording Schedule**: Automatically detect and record streams from specified streamers
-- **Platform Strategy Pattern**: Abstract stream URL acquisition methods for each platform
-- **Flexible Configuration**: Recording time, quality, storage location, and detailed settings
+- **APScheduler-based**: Robust job scheduling and management
+- **Platform Strategy Pattern**: Extensible platform support with strategy pattern
+- **Flexible Configuration**: Quality settings, custom arguments, and monitoring intervals
+- **Automatic Stream Detection**: Periodic checks for live streams
 
 ### 🖥️ Web Dashboard
-- **File Explorer Style UI**: Intuitive and familiar file management interface
-- **Real-time Monitoring**: Live recording status and progress monitoring
-- **File Management**: Basic functions for recorded files (play, download, delete)
+- **Modern React UI**: Built with Next.js 15 and Tailwind CSS
+- **Real-time Monitoring**: Live recording status and file size updates
+- **File Management**: Recording list, favorites, and file operations
+- **Responsive Design**: Mobile-friendly interface
 
 ### ⭐ Favorites System
 - **Like/Favorite**: Mark important recorded files as favorites
 - **Protection Feature**: Favorite files are excluded from automatic deletion
 
-### 🔄 Automatic Management System
-- **Rotation Settings**: Automatic file management based on various conditions
-  - Time-based: Automatic deletion after specified period (e.g., 30 days)
-  - Count-based: Maximum file count limit
-  - Size-based: Maximum storage capacity limit
-- **Smart Cleanup**: Preserve favorite files while removing unnecessary ones
+### 🔄 Rotation Policy System
+- **Reusable Policies**: Create and share rotation policies across schedules
+- **Multiple Strategies**: Time-based (age), count-based (quantity), size-based (storage)
+- **Priority System**: Policy priority and favorite file protection
+- **Flexible Assignment**: Apply policies to multiple recording schedules
 
 ### 🐳 Deployment & Infrastructure
 - **Docker Support**: Containerized deployment environment
@@ -42,7 +43,7 @@ Streamlink Dashboard is a web application that automatically records and manages
 ## Technology Stack
 
 ### Backend
-- **Language**: Python
+- **Language**: Python 3.10+ (Required)
 - **Web Framework**: FastAPI
 - **Streaming**: Streamlink
 - **Scheduler**: APScheduler
@@ -50,9 +51,10 @@ Streamlink Dashboard is a web application that automatically records and manages
 
 ### Frontend
 - **Language**: TypeScript
-- **Framework**: React
-- **UI Library**: Material-UI
-- **File Management**: Custom File Explorer component
+- **Framework**: Next.js 15
+- **UI Library**: Tailwind CSS with Headless UI
+- **State Management**: Zustand
+- **Data Fetching**: React Query (@tanstack/react-query)
 
 ### Infrastructure
 - **Container**: Docker & Docker Compose
@@ -63,15 +65,15 @@ Streamlink Dashboard is a web application that automatically records and manages
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Web Dashboard │    │  Scheduler API  │    │  Streamlink     │
-│   (React)       │◄──►│   (FastAPI)     │◄──►│   Engine        │
+│   Next.js App   │    │   FastAPI       │    │  APScheduler    │
+│   (Frontend)    │◄──►│   (Backend)     │◄──►│   (Jobs)        │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
          │                       │                       │
          │                       │                       │
          ▼                       ▼                       ▼
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   File Storage  │    │   SQLite DB     │    │ Platform        │
-│   (Recordings)  │    │   (Metadata)    │    │ Strategies      │
+│   App Data      │    │   SQLite DB     │    │  Streamlink     │
+│  (Volume Mount) │    │   (Metadata)    │    │   Process       │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
@@ -83,77 +85,113 @@ Streamlink Dashboard is a web application that automatically records and manages
 - **Plugin System**: Plugin architecture for adding new platforms
 
 ### Supported Platforms
-- **Twitch**: Stream information acquisition through official API
-- **YouTube**: Using YouTube Data API
-- **AfreecaTV**: Web scraping based approach
-- **Other Platforms**: Extensible structure for additional support
+- **Twitch**: Direct stream detection and recording
+- **YouTube**: Live stream support with optimized settings
+- **Sooplive**: Korean streaming platform support
+- **Chzzk (치지직)**: Naver's streaming platform support
+- **Extensible Architecture**: Easy addition of new platforms via strategy pattern
 
 ## Configuration & Customization
 
-### Streamlink Configuration
-```yaml
-platforms:
-  twitch:
-    streamlink_args:
-      - "--twitch-disable-hosting"
-      - "--twitch-disable-ads"
-  youtube:
-    streamlink_args:
-      - "--youtube-live-from-start"
-```
+### Platform Configuration
+Managed through the web dashboard:
+- **Twitch**: Stream quality and custom Streamlink arguments
+- **YouTube**: Live stream settings and API configuration
+- **Sooplive**: Korean platform-specific settings
+- **Chzzk**: Naver streaming platform support
 
-### Rotation Configuration
-```yaml
-rotation:
-  time_based:
-    enabled: true
-    days: 30
-  count_based:
-    enabled: true
-    max_files: 100
-  size_based:
-    enabled: true
-    max_size_gb: 50
-  preserve_favorites: true
-```
+### Recording Schedules
+- **Per-schedule Settings**: Quality, custom arguments, rotation policies
+- **Monitoring Intervals**: Configurable stream check frequency
+- **File Management**: Automatic naming and organization
+
+### Rotation Policies
+- **Reusable Policies**: Create once, apply to multiple schedules
+- **Multiple Conditions**: Age, count, and size-based cleanup
+- **Smart Cleanup**: Preserve favorites and recent files
 
 ## Development & Deployment
 
-### Local Development Environment
+### Quick Start
+
+**⚠️ Important: This project requires Python 3.10+ and Linux/macOS/Docker environment**
+
+#### Development Mode
 ```bash
+# Backend (Terminal 1)
+cd backend
+./run.sh  # Auto-setup venv and start server
+
+# Frontend (Terminal 2) 
+cd frontend
+npm install
+npm run dev
+```
+
+#### Docker Deployment
+```bash
+# Build and run with Docker
+docker build -t streamlink-dashboard .
+docker run -d -p 8000:8000 -v $(pwd)/app_data:/app/app_data --name streamlink-dashboard streamlink-dashboard
+
+# Access at http://localhost:8000
+# Default login: admin/admin123
+```
+
+### Manual Setup
+
+**Requirements:**
+- Python 3.10+ (Required)
+- Linux/macOS/Docker environment (Windows not supported for development)
+
+```bash
+# Create virtual environment (Python 3.10 required)
+python3.10 -m venv backend/venv
+source backend/venv/bin/activate
+
 # Install dependencies
-pip install -r requirements.txt
+pip install -r backend/requirements.txt
 
 # Run development server
-python app.py
+cd backend && ./run.sh
 ```
 
-### Docker Deployment
+### Environment Setup Guide
+
+For detailed environment setup instructions, see [Environment Setup Guide](docs/ENVIRONMENT_SETUP.md)
+
+### Production Deployment
+
+#### Docker (Recommended)
 ```bash
-# Build Docker image
+# Build image
 docker build -t streamlink-dashboard .
 
-# Run container
-docker run -p 8080:8080 -v /recordings:/app/recordings streamlink-dashboard
-```
-
-### NAS Deployment (Synology)
-```bash
-# Pull and run on Synology NAS
+# Run with volume mount for data persistence
 docker run -d \
   --name streamlink-dashboard \
-  -p 8080:8080 \
-  -v /volume1/recordings:/app/recordings \
-  -v /volume1/data:/app/data \
+  -p 8000:8000 \
+  -v $(pwd)/app_data:/app/app_data \
+  streamlink-dashboard
+```
+
+#### NAS Deployment (Synology)
+```bash
+# Run on Synology NAS
+docker run -d \
+  --name streamlink-dashboard \
+  -p 8000:8000 \
+  -v /volume1/streamlink-data:/app/app_data \
   streamlink-dashboard
 ```
 
 ## Authentication
 
-### Basic Authentication
-- **Simple Setup**: Username/password authentication for internal network access
-- **No Complex Setup**: No need for external authentication services
-- **Secure for Internal Use**: Suitable for home/office network environments
+### Authentication
+- **HTTP Basic Auth**: Simple username/password authentication
+- **JWT Tokens**: Secure session management
+- **Default Admin**: admin/admin123 (change after first login)
+- **Role-based Access**: Admin and user roles supported
 
 ## Configuration Management
 
@@ -171,7 +209,7 @@ docker run -d \
 
 ## Logging & Monitoring
 
-### Docker-based Logging
+### Docker Logging
 ```bash
 # View application logs
 docker logs streamlink-dashboard
@@ -179,8 +217,8 @@ docker logs streamlink-dashboard
 # Follow logs in real-time
 docker logs -f streamlink-dashboard
 
-# View logs for specific time period
-docker logs --since="2023-01-01T00:00:00" streamlink-dashboard
+# View recent logs
+docker logs --tail=100 streamlink-dashboard
 
 # View error logs only
 docker logs streamlink-dashboard 2>&1 | grep ERROR
@@ -190,6 +228,30 @@ docker logs streamlink-dashboard 2>&1 | grep ERROR
 - **Structured Logging**: JSON format for easy parsing
 - **Log Rotation**: Automatic log file rotation
 - **Error Tracking**: Comprehensive error logging and monitoring
+
+## Key Files & Structure
+
+```
+├── backend/               # Python FastAPI backend
+│   ├── app/
+│   │   ├── api/v1/       # REST API endpoints
+│   │   ├── services/     # Business logic (scheduler, streamlink)
+│   │   ├── database/     # SQLAlchemy models and DB setup
+│   │   └── schemas/      # Pydantic schemas
+│   └── run.sh            # Development server script
+├── frontend/             # Next.js frontend
+│   ├── src/
+│   │   ├── app/          # Next.js 15 App Router
+│   │   ├── components/   # React components
+│   │   ├── lib/          # API client and utilities
+│   │   └── store/        # Zustand state management
+├── app_data/             # Docker volume mount point
+│   ├── database/         # SQLite database
+│   ├── recordings/       # Recorded video files
+│   ├── logs/             # Application logs
+│   └── config/           # Configuration files
+└── Dockerfile            # Multi-stage Docker build
+```
 
 ## License
 

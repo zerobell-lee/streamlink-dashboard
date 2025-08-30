@@ -1,0 +1,97 @@
+@startuml Streamlink Dashboard System Architecture
+
+title Streamlink Dashboard - High-Level System Architecture
+
+package "Frontend Layer" {
+    [React Web Dashboard] as react_ui
+}
+
+package "API Layer" {
+    [FastAPI Backend] as fastapi
+    
+    package "API Endpoints" {
+        [Users API] as users_api
+        [Recordings API] as recordings_api
+        [Schedules API] as schedules_api
+        [Platforms API] as platforms_api
+        [System API] as system_api
+        [Scheduler API] as scheduler_api
+    }
+}
+
+package "Business Logic Layer" {
+    [SchedulerService] as scheduler_service
+    [StreamlinkService] as streamlink_service
+    [PlatformService] as platform_service
+}
+
+package "Platform Strategies" {
+    [Twitch Strategy] as twitch_strategy
+    [YouTube Strategy] as youtube_strategy
+    [Sooplive Strategy] as sooplive_strategy
+    [Base Strategy] as base_strategy
+}
+
+package "Data Layer" {
+    database "SQLite Database" as sqlite
+}
+
+package "External Systems" {
+    [Streaming Platforms] as platforms
+    [File System] as filesystem
+    [Streamlink CLI] as streamlink_cli
+}
+
+package "Deployment" {
+    [Docker Container] as docker
+}
+
+' Relationships
+react_ui --> fastapi : HTTP/WebSocket
+fastapi --> users_api : Routes
+fastapi --> recordings_api : Routes
+fastapi --> schedules_api : Routes
+fastapi --> platforms_api : Routes
+fastapi --> system_api : Routes
+fastapi --> scheduler_api : Routes
+
+users_api --> scheduler_service : Internal API
+recordings_api --> streamlink_service : Internal API
+schedules_api --> scheduler_service : Internal API
+platforms_api --> platform_service : Internal API
+system_api --> platform_service : Internal API
+scheduler_api --> scheduler_service : Internal API
+
+scheduler_service --> streamlink_service : Job Execution
+scheduler_service --> platform_service : Platform Info
+scheduler_service --> sqlite : Job Status
+streamlink_service --> platform_service : Stream URLs
+streamlink_service --> streamlink_cli : Process Execution
+streamlink_service --> filesystem : File Writing
+platform_service --> sqlite : Config Data
+
+platform_service --> twitch_strategy : Strategy Pattern
+platform_service --> youtube_strategy : Strategy Pattern
+platform_service --> sooplive_strategy : Strategy Pattern
+platform_service --> base_strategy : Strategy Pattern
+
+twitch_strategy --> platforms : Twitch API
+youtube_strategy --> platforms : YouTube API
+sooplive_strategy --> platforms : Sooplive API
+
+
+react_ui --> docker : Containerized
+fastapi --> docker : Containerized
+scheduler_service --> docker : Containerized
+streamlink_service --> docker : Containerized
+platform_service --> docker : Containerized
+sqlite --> docker : Volume Mount
+streamlink_cli --> docker : Installed
+
+note right of react_ui : Modern React Frontend\n- File Explorer Style\n- Real-time Updates\n- Responsive Design
+note right of fastapi : FastAPI Backend\n- RESTful Endpoints\n- Basic Auth\n- CORS Support
+note right of scheduler_service : Custom Scheduler\n- Stream Monitoring\n- Background Tasks\n- Error Recovery
+note right of streamlink_service : Stream Processing\n- Multi-platform Support\n- Process Management\n- File Output
+note right of platform_service : Strategy Management\n- Platform Abstraction\n- Configuration\n- URL Generation
+
+@enduml

@@ -1,0 +1,41 @@
+# Node.js frontend
+frontend/node_modules
+frontend/.next
+frontend/out
+frontend/build
+frontend/.env*
+
+# Python backend
+backend/venv
+backend/__pycache__
+backend/**/__pycache__
+backend/.env
+backend/*.pyc
+backend/**/*.pyc
+backend/.pytest_cache
+backend/tests
+
+# Application data
+app_data/
+data/
+
+# Development files
+.git
+.gitignore
+README.md
+*.md
+.vscode
+.idea
+
+# Docker files
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Logs
+*.log
+logs/
+
+# OS generated files
+.DS_Store
+Thumbs.db

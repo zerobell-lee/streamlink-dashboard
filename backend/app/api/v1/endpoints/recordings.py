@@ -2,6 +2,7 @@
 Recordings API endpoints
 """
 from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi.responses import FileResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
 from typing import List, Optional
@@ -16,7 +17,7 @@ from app.schemas.recording import RecordingResponse, RecordingCreate, RecordingU
 router = APIRouter()
 
 
-@router.get("/", response_model=List[RecordingResponse])
+@router.get("", response_model=List[RecordingResponse])
 async def get_recordings(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
@@ -100,6 +101,41 @@ async def toggle_favorite(
     await db.refresh(recording)
     
     return {"message": f"Recording {'marked as favorite' if recording.is_favorite else 'unmarked from favorite'}"}
+
+
+@router.get("/{recording_id}/download")
+async def download_recording(
+    recording_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Download a recording file
+    """
+    result = await db.execute(
+        select(Recording).where(Recording.id == recording_id)
+    )
+    recording = result.scalar_one_or_none()
+    
+    if not recording:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Recording not found"
+        )
+    
+    # Check if file exists
+    if not os.path.exists(recording.file_path):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Recording file not found on disk"
+        )
+    
+    # Return file as download
+    return FileResponse(
+        path=recording.file_path,
+        filename=recording.file_name,
+        media_type='application/octet-stream'
+    )
 
 
 @router.delete("/{recording_id}")

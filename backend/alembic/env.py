@@ -8,16 +8,25 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 from alembic import context
 
-# Import your models
-from app.database.base import Base
+# Import your models and settings
+from app.database.models import Base
 from app.database.models import (
-    User, PlatformConfig, SystemConfig, RotationPolicy,
+    User, PlatformConfig, SystemConfig,
     RecordingSchedule, Recording, RecordingJob
 )
+from app.core.config import settings
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
+
+# Override the sqlalchemy.url with the one from our config
+config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+
+# Ensure database directory exists
+import os
+db_dir = os.path.dirname(settings.DATABASE_URL.replace("sqlite+aiosqlite:///", ""))
+os.makedirs(db_dir, exist_ok=True)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.

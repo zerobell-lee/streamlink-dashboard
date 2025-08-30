@@ -1,1 +1,1 @@
-# Test package for Streamlink Dashboard
+# Tests package
