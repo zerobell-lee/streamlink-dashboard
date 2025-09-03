@@ -4,6 +4,7 @@ Application configuration settings
 from pydantic_settings import BaseSettings
 from typing import List, Optional
 import os
+import logging
 from dotenv import load_dotenv
 
 # Load .env file if it exists
@@ -61,5 +62,37 @@ class Settings(BaseSettings):
 # Create settings instance
 settings = Settings()
 
-# Ensure recordings directory exists
-os.makedirs(settings.RECORDINGS_DIR, exist_ok=True)
+
+def ensure_app_directories() -> None:
+    """
+    Ensure all required application directories exist.
+    This function creates all necessary directories for the application to function properly,
+    including database, recordings, logs, and config directories.
+    """
+    # List of all required directories
+    required_directories = [
+        settings.APP_DATA_DIR,
+        settings.RECORDINGS_DIR,
+        settings.LOGS_DIR,
+        settings.CONFIG_DIR,
+        f"{settings.APP_DATA_DIR}/database"  # Explicit database directory
+    ]
+    
+    for directory in required_directories:
+        try:
+            os.makedirs(directory, exist_ok=True)
+            logging.info(f"Ensured directory exists: {directory}")
+        except PermissionError as e:
+            error_msg = f"Failed to create directory {directory}: Permission denied - {e}"
+            logging.error(error_msg)
+            raise RuntimeError(error_msg) from e
+        except OSError as e:
+            error_msg = f"Failed to create directory {directory}: {e}"
+            logging.error(error_msg)
+            raise RuntimeError(error_msg) from e
+    
+    logging.info("All required application directories have been ensured")
+
+
+# Initialize directories on module import
+ensure_app_directories()

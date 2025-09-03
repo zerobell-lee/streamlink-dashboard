@@ -15,7 +15,7 @@ import httpx
 import asyncio
 import subprocess
 
-from app.core.config import settings
+from app.core.config import settings, ensure_app_directories
 
 # Configure logging
 logging.basicConfig(
@@ -40,6 +40,14 @@ async def lifespan(app: FastAPI):
     global scheduler_service
     
     # Startup
+    # Ensure all required directories exist before any database operations
+    try:
+        ensure_app_directories()
+        logging.info("Directory initialization completed successfully")
+    except Exception as e:
+        logging.error(f"Failed to initialize directories: {e}")
+        raise  # Critical error, should stop application startup
+    
     try:
         async with engine.begin() as conn:
             # Create tables if they don't exist
