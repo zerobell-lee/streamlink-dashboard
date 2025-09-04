@@ -9,7 +9,7 @@ from typing import Dict, List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from app.database.models import RecordingSchedule, Recording, PlatformConfig, User
+from app.database.models import RecordingSchedule, Recording
 from app.services.platform_service import PlatformService
 from app.services.streamlink_service import StreamlinkService
 from app.core.config import settings
@@ -330,12 +330,30 @@ class SchedulerService:
     async def _start_recording_with_session(self, session: AsyncSession, schedule: RecordingSchedule, stream_info):
         """Start recording for a schedule with a specific session"""
         try:
-            # Import settings
+            # Import settings and platform service
             from app.core.config import settings
+            from app.services.platform_service import PlatformService
+            from app.services.output_filename_template import OutputFileNameTemplate
             
-            # Generate output filename
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"{schedule.streamer_id}_{timestamp}.mp4"
+            # Get platform definition to get default filename template
+            platform_service = PlatformService(session)
+            platform_definition = platform_service.get_platform_definition(schedule.platform)
+            
+            # Use schedule's filename template or platform default
+            filename_template = schedule.filename_template or platform_definition.default_filename_template
+            
+            # Generate filename using template engine
+            template_engine = OutputFileNameTemplate(filename_template)
+            filename = template_engine.generate_filename(
+                streamer_id=schedule.streamer_id,
+                platform=schedule.platform,
+                quality=schedule.quality,
+                streamer_name=schedule.streamer_name,
+                title=f"{schedule.streamer_name} Stream",
+                file_extension=schedule.output_format or platform_definition.default_output_format
+            )
+            
+            # Create full output path
             output_path = f"{settings.RECORDINGS_DIR}/{filename}"
             
             # Create recording record
@@ -365,7 +383,8 @@ class SchedulerService:
                 platform=schedule.platform,
                 streamer_id=schedule.streamer_id,
                 quality=schedule.quality,
-                output_path=output_path
+                output_path=output_path,
+                schedule_id=schedule.id
             )
             
             if not success:

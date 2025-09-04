@@ -142,15 +142,32 @@ export const api = {
     stopAllRecordings: () => apiClient.post('/api/v1/scheduler/stop-all-recordings'),
   },
 
-  // Platforms
+  // Platforms (Registry-based)
   platforms: {
-    getAll: () => apiClient.get('/api/v1/platforms/'),
-    getSupported: () => apiClient.get('/api/v1/platforms/supported'),
-    getSchemas: () => apiClient.get('/api/v1/platforms/schema'),
-    getConfig: (platformName: string) => apiClient.get(`/api/v1/platforms/${platformName}/config`),
-    updateConfig: (platformName: string, data: any) => apiClient.put(`/api/v1/platforms/${platformName}/config`, data),
-    initialize: () => apiClient.post('/api/v1/platforms/initialize'),
+    // Platform information endpoints
+    getAll: () => apiClient.get('/api/v1/platforms/'), // Combined platform info
+    getAvailable: () => apiClient.get('/api/v1/platforms/available'), // Platform definitions
+    getSupported: () => apiClient.get('/api/v1/platforms/supported'), // Supported platform names
+    getPlatform: (platformName: string) => apiClient.get(`/api/v1/platforms/${platformName}`),
+    getSchema: (platformName: string) => apiClient.get(`/api/v1/platforms/${platformName}/schema`),
+    
+    // User configuration endpoints
+    createConfig: (platformName: string, data: any) => 
+      apiClient.post(`/api/v1/platforms/${platformName}/config`, data),
+    updateConfig: (platformName: string, data: any) => 
+      apiClient.put(`/api/v1/platforms/${platformName}/config`, data),
+    deleteConfig: (platformName: string) => 
+      apiClient.delete(`/api/v1/platforms/${platformName}/config`),
+    
+    // Stream-related endpoints
     getStreamInfo: (platformName: string, streamerId: string) => 
       apiClient.get(`/api/v1/platforms/${platformName}/stream-info?streamer_id=${streamerId}`),
+    getStreamUrls: (platformName: string, streamerId: string) => 
+      apiClient.get(`/api/v1/platforms/${platformName}/stream-urls?streamer_id=${streamerId}`),
+    getStreamlinkArgs: (platformName: string, streamerId: string, quality?: string) => {
+      const params = new URLSearchParams({ streamer_id: streamerId });
+      if (quality) params.append('quality', quality);
+      return apiClient.get(`/api/v1/platforms/${platformName}/streamlink-args?${params}`);
+    },
   },
 };

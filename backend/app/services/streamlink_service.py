@@ -10,8 +10,10 @@ from typing import Dict, List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from app.database.models import Recording
+from app.database.models import Recording, RecordingSchedule
 from app.services.platform_service import PlatformService
+from app.services.platforms.strategy_factory import PlatformStrategyFactory
+from app.services.output_filename_template import OutputFileNameTemplate
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +29,7 @@ class StreamlinkService:
     async def start_recording(
         self, 
         recording_id: int, 
+        schedule_id: int,
         platform: str, 
         streamer_id: str, 
         quality: str = "best",
@@ -48,14 +51,53 @@ class StreamlinkService:
         try:
             logger.info(f"=== Starting recording {recording_id} ===")
             logger.info(f"Platform: {platform}, Streamer: {streamer_id}, Quality: {quality}")
-            logger.info(f"Output path: {output_path}")
+            
+            # Get recording schedule for output format and filename template
+            schedule_query = select(RecordingSchedule).where(RecordingSchedule.id == schedule_id)
+            schedule_result = await self.db.execute(schedule_query)
+            schedule = schedule_result.scalar_one_or_none()
+            
+            if not schedule:
+                logger.error(f"Recording schedule {schedule_id} not found")
+                return False
+            
+            # Get platform definition for defaults
+            platform_definition = PlatformStrategyFactory.get_platform_definition(platform)
+            if not platform_definition:
+                logger.error(f"Platform definition not found for: {platform}")
+                return False
+            
+            # Determine output format (schedule override or platform default)
+            output_format = schedule.output_format or platform_definition.default_output_format
+            
+            # Determine filename template (schedule override or platform default)  
+            filename_template = schedule.filename_template or platform_definition.default_filename_template
+            
+            # Generate filename using template engine
+            if not output_path:
+                template_engine = OutputFileNameTemplate(filename_template)
+                output_filename = template_engine.generate_filename(
+                    streamer_id=streamer_id,
+                    platform=platform,
+                    quality=quality,
+                    streamer_name=schedule.streamer_name,
+                    title=f"{schedule.streamer_name} Stream",
+                    file_extension=output_format
+                )
+                
+                # Default output directory
+                output_dir = os.path.join("recordings", platform)
+                output_path = os.path.join(output_dir, output_filename)
+            
+            logger.info(f"Output format: {output_format}")
+            logger.info(f"Filename template: {filename_template}")
+            logger.info(f"Generated output path: {output_path}")
             
             # Check if output directory exists
-            if output_path:
-                output_dir = os.path.dirname(output_path)
-                if not os.path.exists(output_dir):
-                    logger.info(f"Creating output directory: {output_dir}")
-                    os.makedirs(output_dir, exist_ok=True)
+            output_dir = os.path.dirname(output_path)
+            if not os.path.exists(output_dir):
+                logger.info(f"Creating output directory: {output_dir}")
+                os.makedirs(output_dir, exist_ok=True)
             
             # Get platform strategy
             logger.info(f"Getting platform strategy for {platform}")
