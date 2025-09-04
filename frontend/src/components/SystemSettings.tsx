@@ -404,7 +404,7 @@ function LoggingTab() {
               <select
                 value={loggingConfig.log_level}
                 onChange={(e) => setLoggingConfig(prev => ({ ...prev, log_level: e.target.value as any }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700"
               >
                 <option value="DEBUG">DEBUG</option>
                 <option value="INFO">INFO</option>
@@ -424,7 +424,7 @@ function LoggingTab() {
                 max="365"
                 value={loggingConfig.log_retention_days}
                 onChange={(e) => setLoggingConfig(prev => ({ ...prev, log_retention_days: Number(e.target.value) }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-700"
               />
             </div>
           </div>
