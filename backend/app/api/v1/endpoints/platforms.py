@@ -57,7 +57,10 @@ async def get_platforms(
                     setup_instructions=definition.setup_instructions,
                     config_schema=definition.config_schema,
                     supported_qualities=definition.supported_qualities,
-                    default_streamlink_args=definition.default_streamlink_args
+                    default_streamlink_args=definition.default_streamlink_args,
+                    default_output_format=definition.default_output_format,
+                    supported_output_formats=definition.supported_output_formats,
+                    default_filename_template=definition.default_filename_template
                 ),
                 user_config=PlatformUserConfigResponse(
                     platform_name=user_config.platform_name,
@@ -103,7 +106,10 @@ async def get_available_platforms(
                 setup_instructions=definition.setup_instructions,
                 config_schema=definition.config_schema,
                 supported_qualities=definition.supported_qualities,
-                default_streamlink_args=definition.default_streamlink_args
+                default_streamlink_args=definition.default_streamlink_args,
+                default_output_format=definition.default_output_format,
+                supported_output_formats=definition.supported_output_formats,
+                default_filename_template=definition.default_filename_template
             )
             for definition in definitions
         ]
@@ -180,7 +186,10 @@ async def get_platform(
                 setup_instructions=definition.setup_instructions,
                 config_schema=definition.config_schema,
                 supported_qualities=definition.supported_qualities,
-                default_streamlink_args=definition.default_streamlink_args
+                default_streamlink_args=definition.default_streamlink_args,
+                default_output_format=definition.default_output_format,
+                supported_output_formats=definition.supported_output_formats,
+                default_filename_template=definition.default_filename_template
             ),
             user_config=PlatformUserConfigResponse(
                 platform_name=user_config.platform_name,

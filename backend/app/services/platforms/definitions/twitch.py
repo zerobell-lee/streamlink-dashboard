@@ -70,6 +70,11 @@ twitch_definition = PlatformDefinition(
         "worst"      # Worst available quality
     ],
     
+    # Output file configuration
+    default_output_format="mp4",
+    supported_output_formats=["mp4", "ts", "mkv"],
+    default_filename_template="{streamer_id}_{yyyyMMdd}_{HHmmss}",
+    
     # Platform features
     requires_auth=False,  # Works without auth but limited
     supports_chat=True,   # Chat can be recorded

@@ -54,6 +54,10 @@ export interface RecordingSchedule {
   custom_arguments?: string;
   enabled: boolean;
   
+  // Output file configuration
+  output_format?: string;
+  filename_template?: string;
+  
   // Inline rotation settings
   rotation_enabled: boolean;
   rotation_type?: 'time' | 'count' | 'size';
@@ -145,6 +149,10 @@ export interface CreateScheduleForm {
   streamer_name: string;
   quality: string;
   custom_arguments?: string;
+  
+  // Output file configuration
+  output_format?: string;
+  filename_template?: string;
   
   // Inline rotation settings
   rotation_enabled?: boolean;

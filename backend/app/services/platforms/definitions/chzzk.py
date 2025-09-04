@@ -24,6 +24,11 @@ chzzk_definition = PlatformDefinition(
     default_streamlink_args=[],
     supported_qualities=["best", "worst"],
     
+    # Output file configuration
+    default_output_format="mp4",  # Chzzk works well with MP4
+    supported_output_formats=["mp4", "ts", "mkv"],
+    default_filename_template="{streamer_id}_{yyyyMMdd}_{HHmmss}",
+    
     # Platform features
     requires_auth=False,
     supports_chat=False,

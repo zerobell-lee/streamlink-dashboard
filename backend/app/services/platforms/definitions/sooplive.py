@@ -35,6 +35,11 @@ sooplive_definition = PlatformDefinition(
     default_streamlink_args=[],
     supported_qualities=["best", "worst"],
     
+    # Output file configuration
+    default_output_format="ts",  # Sooplive works best with TS container
+    supported_output_formats=["ts", "mp4"],
+    default_filename_template="{streamer_id}_{yyyyMMdd}_{HHmmss}",
+    
     # Platform features
     requires_auth=False,
     supports_chat=False,

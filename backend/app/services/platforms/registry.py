@@ -31,6 +31,11 @@ class PlatformDefinition(ABC):
     default_streamlink_args: List[str] = field(default_factory=list)  # Default streamlink arguments
     supported_qualities: List[str] = field(default_factory=lambda: ["best", "worst"])  # Available quality options
     
+    # Output file configuration
+    default_output_format: str = "mp4"  # Default container format (mp4, ts, mkv, etc.)
+    supported_output_formats: List[str] = field(default_factory=lambda: ["mp4", "ts", "mkv"])  # Available formats
+    default_filename_template: str = "{streamer_id}_{yyyyMMdd}_{HHmmss}"  # Default filename template
+    
     # Authentication and features
     requires_auth: bool = False         # Whether this platform requires authentication
     supports_chat: bool = False         # Whether chat recording is supported

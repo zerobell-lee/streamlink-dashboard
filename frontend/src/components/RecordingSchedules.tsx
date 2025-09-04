@@ -27,6 +27,14 @@ const RecordingSchedules = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState<RecordingSchedule | null>(null);
+  
+  // Toast notification state
+  const [toast, setToast] = useState<{
+    show: boolean;
+    message: string;
+    type: 'success' | 'error' | 'warning';
+  }>({ show: false, message: '', type: 'success' });
+
   const [formData, setFormData] = useState<CreateScheduleForm>({
     platform: '',
     streamer_id: '',
@@ -40,6 +48,14 @@ const RecordingSchedules = () => {
     protect_favorites: true,
     delete_empty_files: true
   });
+
+  // Toast notification helper
+  const showToast = (message: string, type: 'success' | 'error' | 'warning' = 'success') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => {
+      setToast({ show: false, message: '', type: 'success' });
+    }, 5000);
+  };
 
   // Fetch data on component mount
   useEffect(() => {
@@ -86,6 +102,8 @@ const RecordingSchedules = () => {
       streamer_name: schedule.streamer_name,
       quality: schedule.quality,
       custom_arguments: schedule.custom_arguments,
+      output_format: schedule.output_format,
+      filename_template: schedule.filename_template,
       rotation_enabled: schedule.rotation_enabled,
       rotation_type: schedule.rotation_type || 'time',
       max_age_days: schedule.max_age_days || 30,
@@ -102,9 +120,10 @@ const RecordingSchedules = () => {
       try {
         await api.schedules.delete(id);
         setSchedules(schedules.filter(s => s.id !== id));
+        showToast('Schedule deleted successfully', 'success');
       } catch (error: any) {
         console.error('Delete failed:', error);
-        alert(error.response?.data?.detail || 'Failed to delete schedule');
+        showToast(error.response?.data?.detail || 'Failed to delete schedule', 'error');
       }
     }
   };
@@ -112,7 +131,7 @@ const RecordingSchedules = () => {
   const handleSave = async () => {
     try {
       if (!formData.platform || !formData.streamer_id) {
-        alert('Please fill in all required fields');
+        showToast('Please fill in all required fields', 'warning');
         return;
       }
       
@@ -125,14 +144,34 @@ const RecordingSchedules = () => {
       if (editingSchedule) {
         const response = await api.schedules.update(editingSchedule.id, submitData);
         setSchedules(schedules.map(s => s.id === editingSchedule.id ? response.data : s));
+        showToast('Schedule updated successfully', 'success');
       } else {
         const response = await api.schedules.create(submitData);
         setSchedules([...schedules, response.data]);
+        showToast('Schedule created successfully', 'success');
       }
       setIsModalOpen(false);
     } catch (error: any) {
-      console.error('Save failed:', error);
-      alert(error.response?.data?.detail || 'Failed to save schedule');
+      // Handle validation errors (422 status code)
+      if (error.response?.status === 422) {
+        console.warn('Validation error:', error.response.data);
+        const detail = error.response.data?.detail;
+        if (Array.isArray(detail) && detail.length > 0) {
+          // Pydantic validation errors are arrays with objects containing 'msg' and 'loc'
+          const errorMessages = detail.map((err: any) => {
+            const field = err.loc?.length > 0 ? err.loc[err.loc.length - 1] : 'field';
+            return `${field}: ${err.msg}`;
+          }).join('. ');
+          showToast(`Validation Error: ${errorMessages}`, 'error');
+        } else if (typeof detail === 'string') {
+          showToast(`Validation Error: ${detail}`, 'error');
+        } else {
+          showToast('Validation error occurred. Please check your input.', 'error');
+        }
+      } else {
+        console.error('Save failed:', error);
+        showToast(error.response?.data?.detail || 'Failed to save schedule', 'error');
+      }
     }
   };
 
@@ -143,9 +182,15 @@ const RecordingSchedules = () => {
         ...s,
         enabled: response.data.enabled
       } : s));
+      showToast(
+        response.data.enabled 
+          ? 'Schedule enabled successfully' 
+          : 'Schedule disabled successfully', 
+        'success'
+      );
     } catch (error: any) {
       console.error('Toggle failed:', error);
-      alert(error.response?.data?.detail || 'Failed to toggle schedule');
+      showToast(error.response?.data?.detail || 'Failed to toggle schedule', 'error');
     }
   };
 
@@ -420,6 +465,50 @@ const RecordingSchedules = () => {
                   />
                 </div>
 
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Output Format
+                      <span className="text-xs font-normal text-gray-500 ml-2">
+                        (Optional, uses platform default)
+                      </span>
+                    </label>
+                    <select
+                      value={formData.output_format || ''}
+                      onChange={(e) => setFormData({...formData, output_format: e.target.value || undefined})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                    >
+                      <option value="" className="text-gray-500 bg-white">Use platform default</option>
+                      <option value="mp4" className="text-gray-900 bg-white">MP4 (recommended for most)</option>
+                      <option value="ts" className="text-gray-900 bg-white">TS (Transport Stream)</option>
+                      <option value="mkv" className="text-gray-900 bg-white">MKV</option>
+                      <option value="flv" className="text-gray-900 bg-white">FLV</option>
+                    </select>
+                    <p className="text-xs text-gray-600 mt-1">
+                      Twitch/CHZZK default: MP4, SoopLive default: TS
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Filename Template
+                      <span className="text-xs font-normal text-gray-500 ml-2">
+                        (Optional, uses platform default)
+                      </span>
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.filename_template || ''}
+                      onChange={(e) => setFormData({...formData, filename_template: e.target.value || undefined})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white placeholder-gray-400"
+                      placeholder="{streamer_id}_{yyyyMMdd}_{HHmmss}"
+                    />
+                    <p className="text-xs text-gray-600 mt-1">
+                      Variables: {"{streamer_id}, {streamer_name}, {platform}, {title}, {quality}, {yyyy}, {MM}, {dd}, {HH}, {mm}, {ss}"}
+                    </p>
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Custom Arguments
@@ -551,6 +640,47 @@ const RecordingSchedules = () => {
                 <Save className="h-4 w-4" />
                 <span>{editingSchedule ? 'Update' : 'Create'} Schedule</span>
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toast.show && (
+        <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-right duration-300">
+          <div className={`
+            max-w-md w-full bg-white rounded-lg shadow-lg border-l-4 p-4
+            ${toast.type === 'success' ? 'border-green-500' : 
+              toast.type === 'error' ? 'border-red-500' : 'border-yellow-500'}
+          `}>
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                {toast.type === 'success' && (
+                  <CheckCircle className="h-5 w-5 text-green-500" />
+                )}
+                {toast.type === 'error' && (
+                  <XCircle className="h-5 w-5 text-red-500" />
+                )}
+                {toast.type === 'warning' && (
+                  <AlertTriangle className="h-5 w-5 text-yellow-500" />
+                )}
+              </div>
+              <div className="ml-3 flex-1">
+                <p className={`text-sm font-medium 
+                  ${toast.type === 'success' ? 'text-green-800' : 
+                    toast.type === 'error' ? 'text-red-800' : 'text-yellow-800'}
+                `}>
+                  {toast.message}
+                </p>
+              </div>
+              <div className="ml-4 flex-shrink-0">
+                <button
+                  onClick={() => setToast({ show: false, message: '', type: 'success' })}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           </div>
         </div>

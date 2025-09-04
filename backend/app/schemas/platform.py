@@ -20,6 +20,9 @@ class PlatformDefinitionResponse(BaseModel):
     config_schema: Dict[str, Any]
     supported_qualities: List[str]
     default_streamlink_args: List[str]
+    default_output_format: str
+    supported_output_formats: List[str]
+    default_filename_template: str
 
 
 class PlatformDefinitionListResponse(BaseModel):

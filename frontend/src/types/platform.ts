@@ -11,6 +11,9 @@ export interface PlatformDefinition {
   config_schema: Record<string, any>; // JSON Schema
   supported_qualities: string[];
   default_streamlink_args: string[];
+  default_output_format: string;
+  supported_output_formats: string[];
+  default_filename_template: string;
 }
 
 // User Configuration (Database-managed)

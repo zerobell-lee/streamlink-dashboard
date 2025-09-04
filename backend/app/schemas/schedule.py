@@ -1,7 +1,7 @@
 """
 Pydantic schemas for RecordingSchedule
 """
-from pydantic import BaseModel, Field, field_serializer
+from pydantic import BaseModel, Field, field_serializer, field_validator
 from typing import Optional
 from datetime import datetime
 
@@ -15,6 +15,10 @@ class RecordingScheduleBase(BaseModel):
     custom_arguments: Optional[str] = Field(None, description="Custom Streamlink arguments", max_length=1000)
     enabled: bool = Field(default=True, description="Whether the schedule is enabled")
     
+    # Output file configuration
+    output_format: Optional[str] = Field(None, description="Output file format (mp4, ts, mkv, etc.)", max_length=10)
+    filename_template: Optional[str] = Field(None, description="Filename template string", max_length=500)
+    
     # Inline rotation settings
     rotation_enabled: bool = Field(default=False, description="Whether rotation is enabled")
     rotation_type: Optional[str] = Field(None, description="Rotation type (time, count, size)")
@@ -23,6 +27,22 @@ class RecordingScheduleBase(BaseModel):
     max_size_gb: Optional[int] = Field(None, description="Maximum size in GB (size-based)")
     protect_favorites: bool = Field(default=True, description="Protect favorite recordings")
     delete_empty_files: bool = Field(default=True, description="Delete empty files")
+
+    @field_validator('filename_template')
+    @classmethod
+    def validate_filename_template(cls, v):
+        """Validate filename template syntax"""
+        if v is not None and v.strip():
+            try:
+                from app.services.output_filename_template import OutputFileNameTemplate
+                # Test template creation and validation
+                template_engine = OutputFileNameTemplate(v)
+                # Test template generation with sample data
+                template_engine.preview_filename()
+                return v
+            except Exception as e:
+                raise ValueError(f"Invalid filename template: {str(e)}")
+        return v
 
 
 class RecordingScheduleCreate(RecordingScheduleBase):
@@ -39,6 +59,10 @@ class RecordingScheduleUpdate(BaseModel):
     custom_arguments: Optional[str] = Field(None, description="Custom Streamlink arguments", max_length=1000)
     enabled: Optional[bool] = Field(None, description="Whether the schedule is enabled")
     
+    # Output file configuration
+    output_format: Optional[str] = Field(None, description="Output file format (mp4, ts, mkv, etc.)", max_length=10)
+    filename_template: Optional[str] = Field(None, description="Filename template string", max_length=500)
+    
     # Inline rotation settings
     rotation_enabled: Optional[bool] = Field(None, description="Whether rotation is enabled")
     rotation_type: Optional[str] = Field(None, description="Rotation type (time, count, size)")
@@ -47,6 +71,22 @@ class RecordingScheduleUpdate(BaseModel):
     max_size_gb: Optional[int] = Field(None, description="Maximum size in GB (size-based)")
     protect_favorites: Optional[bool] = Field(None, description="Protect favorite recordings")
     delete_empty_files: Optional[bool] = Field(None, description="Delete empty files")
+
+    @field_validator('filename_template')
+    @classmethod
+    def validate_filename_template(cls, v):
+        """Validate filename template syntax"""
+        if v is not None and v.strip():
+            try:
+                from app.services.output_filename_template import OutputFileNameTemplate
+                # Test template creation and validation
+                template_engine = OutputFileNameTemplate(v)
+                # Test template generation with sample data
+                template_engine.preview_filename()
+                return v
+            except Exception as e:
+                raise ValueError(f"Invalid filename template: {str(e)}")
+        return v
 
 
 class RecordingScheduleResponse(RecordingScheduleBase):

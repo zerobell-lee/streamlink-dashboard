@@ -73,6 +73,10 @@ class RecordingSchedule(Base):
     custom_arguments: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     enabled: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
     
+    # Output file configuration
+    output_format: Mapped[Optional[str]] = mapped_column(String(10), nullable=True)  # mp4, ts, mkv, etc.
+    filename_template: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)  # Template string
+    
     # Inline rotation settings
     rotation_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     rotation_type: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)  # 'time', 'count', 'size'
