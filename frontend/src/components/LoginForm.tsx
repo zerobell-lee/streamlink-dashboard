@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth-store';
 import { api } from '@/lib/api';
-import { AuthResponse } from '@/types';
 
 export default function LoginForm() {
   const [credentials, setCredentials] = useState({
@@ -32,32 +31,16 @@ export default function LoginForm() {
     setError('');
 
     try {
-      // Create Basic Auth credentials
-      const basicAuth = btoa(`${credentials.username}:${credentials.password}`);
-      
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
-      const response = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Basic ${basicAuth}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.detail || 'Login failed. Please try again.');
-      }
-
-      const authData: AuthResponse = await response.json();
+      // Use the JWT login API
+      const response = await api.auth.login(credentials);
       
       // Save auth data to Zustand store
-      login(authData.user, authData.access_token);
+      login(response.data.user, response.data.access_token);
       
       // Redirect to dashboard
       router.push('/');
     } catch (err: any) {
-      setError(err.message || 'Login failed. Please try again.');
+      setError(err.response?.data?.detail || err.message || 'Login failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
