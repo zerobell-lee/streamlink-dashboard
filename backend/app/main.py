@@ -305,20 +305,13 @@ async def log_requests(request, call_next):
         except Exception:
             pass
             
-        # Debug: print to console first to see if middleware is working
-        print(f"DEBUG: API request middleware triggered: {request.method} {request.url.path} -> {response.status_code}")
-            
         # Log the API request
-        try:
-            log_api_request(
-                method=request.method,
-                path=request.url.path,
-                user_id=user_id,
-                status_code=response.status_code
-            )
-            print(f"DEBUG: log_api_request called successfully")
-        except Exception as e:
-            print(f"DEBUG: log_api_request failed: {e}")
+        log_api_request(
+            method=request.method,
+            path=request.url.path,
+            user_id=user_id,
+            status_code=response.status_code
+        )
         
         # Also log response time if it's slow
         if process_time > 1.0:  # Log slow requests (>1 second)

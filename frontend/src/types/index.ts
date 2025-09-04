@@ -190,3 +190,46 @@ export interface AuthResponse {
   token_type: string;
   user: User;
 }
+
+// 로깅 관련 타입
+export interface LoggingConfig {
+  enable_file_logging: boolean;
+  enable_json_logging: boolean;
+  log_level: 'DEBUG' | 'INFO' | 'WARNING' | 'ERROR' | 'CRITICAL';
+  log_retention_days: number;
+  categories: {
+    app: boolean;
+    database: boolean;
+    api: boolean;
+    scheduler: boolean;
+    error: boolean;
+  };
+}
+
+export interface LogFileInfo {
+  path: string;
+  size: number;
+  size_mb: number;
+  modified: string;
+  exists: boolean;
+  error?: string;
+}
+
+export interface LogFilesResponse {
+  log_files: { [filename: string]: LogFileInfo };
+  logs_directory: string;
+}
+
+export interface LogFileContent {
+  filename: string;
+  total_lines: number;
+  showing_lines: number;
+  content: string[];
+}
+
+export interface LogCleanupResponse {
+  message: string;
+  cleaned_files_count: number;
+  cleaned_files: string[];
+  max_age_days: number;
+}

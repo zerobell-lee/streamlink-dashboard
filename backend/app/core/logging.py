@@ -87,7 +87,7 @@ class LoggingConfig:
             "exclude_patterns": []
         },
         "api": {
-            "include_patterns": ["uvicorn.access", "fastapi", "api."],
+            "include_patterns": ["uvicorn.access", "fastapi", "api"],
             "exclude_patterns": []
         },
         "scheduler": {
@@ -307,7 +307,7 @@ def setup_logging(enable_file_logging: bool = True,
 
 def get_category_logger(category: str, extra_context: Optional[Dict] = None):
     """Get a logger with category-specific context"""
-    logger = logging.getLogger(f"app.{category}")
+    logger = logging.getLogger(category)
     
     if extra_context:
         # Create adapter for extra context
@@ -320,13 +320,15 @@ def get_category_logger(category: str, extra_context: Optional[Dict] = None):
 def log_api_request(method: str, path: str, user_id: Optional[str] = None, status_code: Optional[int] = None):
     """Log API request with structured data"""
     logger = get_category_logger("api")
+    
     extra = {"request_method": method, "request_path": path}
     if user_id:
         extra["user_id"] = user_id
     if status_code:
         extra["status_code"] = status_code
     
-    logger.info(f"{method} {path}" + (f" -> {status_code}" if status_code else ""), extra=extra)
+    message = f"{method} {path}" + (f" -> {status_code}" if status_code else "")
+    logger.info(message, extra=extra)
 
 
 def log_recording_event(event: str, platform: str, streamer: str, **kwargs):

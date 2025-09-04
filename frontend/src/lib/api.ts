@@ -122,6 +122,15 @@ export const api = {
     getMonitoringInterval: () => apiClient.get('/api/v1/system/monitoring-interval'),
     setMonitoringInterval: (intervalSeconds: number) => 
       apiClient.post('/api/v1/system/monitoring-interval', { interval_seconds: intervalSeconds }),
+    
+    // Logging management
+    getLoggingConfig: () => apiClient.get('/api/v1/system/logging/config'),
+    updateLoggingConfig: (config: any) => apiClient.post('/api/v1/system/logging/config', config),
+    getLogFiles: () => apiClient.get('/api/v1/system/logging/files'),
+    getLogFileContent: (filename: string, lines: number = 100) => 
+      apiClient.get(`/api/v1/system/logging/files/${filename}?lines=${lines}`),
+    cleanupLogs: (maxAgeDays: number = 30) => 
+      apiClient.post(`/api/v1/system/logging/cleanup?max_age_days=${maxAgeDays}`),
   },
 
   // Scheduler

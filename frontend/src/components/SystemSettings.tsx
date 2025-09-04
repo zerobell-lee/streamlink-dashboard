@@ -8,8 +8,19 @@ import {
   Key, 
   Clock,
   Save,
-  User
+  User,
+  FileText,
+  Eye,
+  Trash2,
+  Download,
+  Activity
 } from 'lucide-react';
+import type { 
+  LoggingConfig, 
+  LogFilesResponse, 
+  LogFileContent,
+  LogCleanupResponse 
+} from '@/types';
 
 export default function SystemSettings() {
   const { user } = useAuthStore();
@@ -30,20 +41,71 @@ export default function SystemSettings() {
   const [intervalError, setIntervalError] = useState('');
   const [intervalSuccess, setIntervalSuccess] = useState(false);
 
-  // Load initial monitoring interval value
+  // Logging management state
+  const [loggingConfig, setLoggingConfig] = useState<LoggingConfig>({
+    enable_file_logging: true,
+    enable_json_logging: false,
+    log_level: 'INFO',
+    log_retention_days: 30,
+    categories: {
+      app: true,
+      database: true,
+      api: true,
+      scheduler: true,
+      error: true
+    }
+  });
+  const [loggingLoading, setLoggingLoading] = useState(false);
+  const [loggingError, setLoggingError] = useState('');
+  const [loggingSuccess, setLoggingSuccess] = useState(false);
+  
+  const [logFiles, setLogFiles] = useState<LogFilesResponse | null>(null);
+  const [logFilesLoading, setLogFilesLoading] = useState(false);
+  const [selectedLogFile, setSelectedLogFile] = useState<string | null>(null);
+  const [logContent, setLogContent] = useState<LogFileContent | null>(null);
+  const [logContentLoading, setLogContentLoading] = useState(false);
+  
+  const [cleanupLoading, setCleanupLoading] = useState(false);
+  const [cleanupSuccess, setCleanupSuccess] = useState(false);
+
+  // Load initial data
   useEffect(() => {
-    const loadMonitoringInterval = async () => {
+    const loadInitialData = async () => {
+      // Load monitoring interval
       try {
         const response = await api.system.getMonitoringInterval();
         setMonitoringInterval(response.data.interval_seconds);
       } catch (error) {
         console.warn('Failed to load monitoring interval:', error);
-        // Keep default value of 60 seconds
       }
+
+      // Load logging configuration
+      try {
+        const response = await api.system.getLoggingConfig();
+        setLoggingConfig(response.data);
+      } catch (error) {
+        console.warn('Failed to load logging config:', error);
+      }
+
+      // Load log files
+      await loadLogFiles();
     };
 
-    loadMonitoringInterval();
+    loadInitialData();
   }, []);
+
+  // Load log files
+  const loadLogFiles = async () => {
+    setLogFilesLoading(true);
+    try {
+      const response = await api.system.getLogFiles();
+      setLogFiles(response.data);
+    } catch (error) {
+      console.warn('Failed to load log files:', error);
+    } finally {
+      setLogFilesLoading(false);
+    }
+  };
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,6 +158,53 @@ export default function SystemSettings() {
       setIntervalError(err.response?.data?.detail || 'Failed to update monitoring interval');
     } finally {
       setIntervalLoading(false);
+    }
+  };
+
+  // Logging configuration handlers
+  const handleLoggingConfigChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoggingError('');
+    setLoggingLoading(true);
+
+    try {
+      await api.system.updateLoggingConfig(loggingConfig);
+      setLoggingSuccess(true);
+      setTimeout(() => setLoggingSuccess(false), 3000);
+    } catch (err: any) {
+      setLoggingError(err.response?.data?.detail || 'Failed to update logging configuration');
+    } finally {
+      setLoggingLoading(false);
+    }
+  };
+
+  const handleLogFileView = async (filename: string) => {
+    setSelectedLogFile(filename);
+    setLogContentLoading(true);
+    
+    try {
+      const response = await api.system.getLogFileContent(filename, 100);
+      setLogContent(response.data);
+    } catch (error) {
+      console.error('Failed to load log file content:', error);
+    } finally {
+      setLogContentLoading(false);
+    }
+  };
+
+  const handleLogCleanup = async () => {
+    setCleanupLoading(true);
+    
+    try {
+      await api.system.cleanupLogs(loggingConfig.log_retention_days);
+      setCleanupSuccess(true);
+      setTimeout(() => setCleanupSuccess(false), 3000);
+      // Reload log files after cleanup
+      await loadLogFiles();
+    } catch (error) {
+      console.error('Failed to cleanup logs:', error);
+    } finally {
+      setCleanupLoading(false);
     }
   };
 
@@ -283,6 +392,235 @@ export default function SystemSettings() {
               </button>
             </form>
           </div>
+        </div>
+      </div>
+
+      {/* Logging Management */}
+      <div className="bg-white rounded-lg border">
+        <div className="p-6 border-b">
+          <h2 className="text-xl font-semibold text-gray-900 flex items-center">
+            <FileText className="h-5 w-5 mr-2 text-gray-600" />
+            Logging Management
+          </h2>
+        </div>
+        
+        <div className="p-6 space-y-8">
+          {/* Logging Configuration */}
+          <div>
+            <h3 className="text-lg font-medium text-gray-900 flex items-center mb-4">
+              <Settings className="h-5 w-5 mr-2 text-gray-600" />
+              Logging Configuration
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Configure system logging settings and categories.
+            </p>
+            
+            <form onSubmit={handleLoggingConfigChange} className="space-y-6 max-w-2xl">
+              {loggingError && (
+                <div className="bg-red-50 border border-red-200 rounded-md p-3">
+                  <p className="text-sm text-red-600">{loggingError}</p>
+                </div>
+              )}
+              
+              {loggingSuccess && (
+                <div className="bg-green-50 border border-green-200 rounded-md p-3">
+                  <p className="text-sm text-green-600">Logging configuration updated successfully!</p>
+                </div>
+              )}
+
+              {/* Basic Settings */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Log Level
+                  </label>
+                  <select
+                    value={loggingConfig.log_level}
+                    onChange={(e) => setLoggingConfig(prev => ({ ...prev, log_level: e.target.value as any }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="DEBUG">DEBUG</option>
+                    <option value="INFO">INFO</option>
+                    <option value="WARNING">WARNING</option>
+                    <option value="ERROR">ERROR</option>
+                    <option value="CRITICAL">CRITICAL</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Retention Days
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="365"
+                    value={loggingConfig.log_retention_days}
+                    onChange={(e) => setLoggingConfig(prev => ({ ...prev, log_retention_days: Number(e.target.value) }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+
+              {/* Feature Toggles */}
+              <div className="space-y-3">
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="file-logging"
+                    checked={loggingConfig.enable_file_logging}
+                    onChange={(e) => setLoggingConfig(prev => ({ ...prev, enable_file_logging: e.target.checked }))}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="file-logging" className="ml-2 block text-sm text-gray-900">
+                    Enable File Logging
+                  </label>
+                </div>
+
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="json-logging"
+                    checked={loggingConfig.enable_json_logging}
+                    onChange={(e) => setLoggingConfig(prev => ({ ...prev, enable_json_logging: e.target.checked }))}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="json-logging" className="ml-2 block text-sm text-gray-900">
+                    Enable JSON Logging (for analysis tools)
+                  </label>
+                </div>
+              </div>
+
+              {/* Categories */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Log Categories
+                </label>
+                <div className="grid grid-cols-3 gap-3">
+                  {Object.entries(loggingConfig.categories).map(([category, enabled]) => (
+                    <div key={category} className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id={`category-${category}`}
+                        checked={enabled}
+                        onChange={(e) => setLoggingConfig(prev => ({
+                          ...prev,
+                          categories: { ...prev.categories, [category]: e.target.checked }
+                        }))}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <label htmlFor={`category-${category}`} className="ml-2 block text-sm text-gray-900 capitalize">
+                        {category}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loggingLoading}
+                className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors disabled:opacity-50"
+              >
+                <Save className="h-4 w-4 mr-2" />
+                {loggingLoading ? 'Saving...' : 'Save Configuration'}
+              </button>
+            </form>
+          </div>
+
+          {/* Log Files Management */}
+          <div className="border-t pt-8">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-medium text-gray-900 flex items-center">
+                <Activity className="h-5 w-5 mr-2 text-gray-600" />
+                Log Files
+              </h3>
+              <div className="flex space-x-2">
+                <button
+                  onClick={loadLogFiles}
+                  disabled={logFilesLoading}
+                  className="flex items-center px-3 py-1 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors disabled:opacity-50"
+                >
+                  <Activity className="h-3 w-3 mr-1" />
+                  {logFilesLoading ? 'Loading...' : 'Refresh'}
+                </button>
+                <button
+                  onClick={handleLogCleanup}
+                  disabled={cleanupLoading}
+                  className="flex items-center px-3 py-1 text-xs font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors disabled:opacity-50"
+                >
+                  <Trash2 className="h-3 w-3 mr-1" />
+                  {cleanupLoading ? 'Cleaning...' : 'Cleanup Old'}
+                </button>
+              </div>
+            </div>
+
+            {cleanupSuccess && (
+              <div className="bg-green-50 border border-green-200 rounded-md p-3 mb-4">
+                <p className="text-sm text-green-600">Log cleanup completed successfully!</p>
+              </div>
+            )}
+
+            {logFiles && (
+              <div className="space-y-3">
+                {Object.entries(logFiles.log_files).map(([filename, fileInfo]) => (
+                  <div key={filename} className="border rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-900">{filename}</h4>
+                        <p className="text-xs text-gray-500">
+                          Size: {fileInfo.size_mb} MB • Modified: {new Date(fileInfo.modified).toLocaleString()}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => handleLogFileView(filename)}
+                        className="flex items-center px-2 py-1 text-xs font-medium text-blue-600 hover:text-blue-700 transition-colors"
+                      >
+                        <Eye className="h-3 w-3 mr-1" />
+                        View
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Log Content Viewer */}
+          {selectedLogFile && (
+            <div className="border-t pt-8">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-gray-900">
+                  {selectedLogFile} Content
+                </h3>
+                <button
+                  onClick={() => setSelectedLogFile(null)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+              
+              {logContentLoading ? (
+                <div className="bg-gray-50 rounded-lg p-4 text-center">
+                  <p className="text-sm text-gray-500">Loading log content...</p>
+                </div>
+              ) : logContent ? (
+                <div className="bg-gray-900 text-gray-100 rounded-lg p-4 max-h-96 overflow-y-auto">
+                  <div className="text-xs mb-2 text-gray-400">
+                    Showing last {logContent.showing_lines} lines of {logContent.total_lines} total lines
+                  </div>
+                  <pre className="text-xs leading-relaxed whitespace-pre-wrap font-mono">
+                    {logContent.content.join('\n')}
+                  </pre>
+                </div>
+              ) : (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <p className="text-sm text-red-600">Failed to load log file content.</p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
