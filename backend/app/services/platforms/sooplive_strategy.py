@@ -135,6 +135,10 @@ class SoopliveStrategy(PlatformStrategy):
                     # Currently streaming
                     logger.debug(f"{user_id} is streaming")
                     return True
+                elif result['CHANNEL']['RESULT'] == -6:
+                    # Member-only broadcast (likely streaming but requires subscription)
+                    logger.warning(f"{user_id} is likely streaming but broadcast is member-only (RESULT: -6)")
+                    return True
                 else:
                     logger.debug(f"Unknown RESULT code: {result['CHANNEL']['RESULT']}")
                     # Authentication failure or other issue - try once more with fresh login
@@ -180,78 +184,16 @@ class SoopliveStrategy(PlatformStrategy):
             if not is_live:
                 # Not streaming
                 return None
-            
-            # Get detailed stream info with authentication if available
-            if not self._session:
-                self._session = aiohttp.ClientSession()
-            
-            # Ensure we're logged in if we have credentials
-            await self._ensure_login()
-            
-            url = 'https://live.sooplive.co.kr/afreeca/player_live_api.php'
-            data = {
-                "bid": streamer_id,
-                "quality": "original",
-                "type": "aid",
-                "pwd": "",
-                "stream_type": "common",
-            }
-            
-            headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-            
-            async with self._session.post(url, data=data, headers=headers) as response:
-                if response.status != 200:
-                    return None
                 
-                # Sooplive returns JSON data with text/html MIME type
-                # Parse raw string as JSON
-                import json
-                raw_text = await response.text()
-                result = json.loads(raw_text)
-                channel_info = result.get('CHANNEL', {})
-                
-                if channel_info.get('RESULT') != 1:
-                    # Authentication failure - try once more with fresh login
-                    if self.username and self.password:
-                        # Force fresh login by resetting login time
-                        self._last_login_time = 0
-                        if await self._ensure_login():
-                            async with self._session.post(url, data=data, headers=headers) as auth_response:
-                                if auth_response.status == 200:
-                                    auth_text = await auth_response.text()
-                                    auth_result = json.loads(auth_text)
-                                    auth_channel_info = auth_result.get('CHANNEL', {})
-                                    if auth_channel_info.get('RESULT') == 1:
-                                        channel_info = auth_channel_info
-                                    else:
-                                        return None
-                                else:
-                                    return None
-                        else:
-                            return None
-                    else:
-                        return None
-                
-                # Extract stream information
-                streamer_name = channel_info.get('BJID', streamer_id)
-                title = channel_info.get('TITLE', 'Live Stream')
-                viewer_count = channel_info.get('TOTALCNT')
-                
-                # Generate thumbnail URL (if available)
-                thumbnail_url = None
-                if channel_info.get('THUMB'):
-                    thumbnail_url = channel_info.get('THUMB')
-                
-                logger.info(f"Sooplive stream info retrieved for {streamer_id}: {title}")
-                return StreamInfo(
-                    streamer_id=streamer_id,
-                    streamer_name=streamer_name,
-                    title=title,
-                    is_live=True,
-                    viewer_count=viewer_count,
-                    thumbnail_url=thumbnail_url,
-                    started_at=None  # Sooplive API doesn't provide start time
-                )
+            return StreamInfo(
+                streamer_id=streamer_id,
+                streamer_name="streamer_name",
+                title="title",
+                is_live=True,
+                viewer_count=0,
+                thumbnail_url="thumbnail_url",
+                started_at=None  # Sooplive API doesn't provide start time
+            )
         
         except Exception as e:
             logger.error(f"Error getting Sooplive stream info: {e}")
@@ -294,7 +236,8 @@ class SoopliveStrategy(PlatformStrategy):
         if self.username and self.password:
             args.extend([
                 "--soop-username", self.username,
-                "--soop-password", self.password
+                "--soop-password", self.password,
+                "--soop-purge-credentials"
             ])
         
         # Sooplive stream URL
