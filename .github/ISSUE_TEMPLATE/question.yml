@@ -1,0 +1,64 @@
+name: ❓ Question / Support
+description: Ask a question or get support
+title: "[Question]: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have a question? Need help with setup or usage? We're here to help!
+        
+        Before asking, please check:
+        - [Documentation](https://github.com/zerobell-lee/streamlink-dashboard/blob/master/README.md)
+        - [Existing issues](https://github.com/zerobell-lee/streamlink-dashboard/issues)
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: What would you like to know?
+      placeholder: Ask your question here...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      description: What is your question about?
+      options:
+        - Installation & Setup
+        - Configuration
+        - Usage & Features
+        - Streaming Platforms
+        - Recording Issues
+        - Docker Deployment
+        - API Usage
+        - Development
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Provide any additional context that might help us answer your question
+      placeholder: |
+        - What are you trying to achieve?
+        - What have you already tried?
+        - Any relevant configuration or setup details?
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: What version are you using?
+      placeholder: "v1.0.0 or commit hash"
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: What environment are you running on?
+      placeholder: "Docker, Ubuntu 22.04, Windows 11, etc."
