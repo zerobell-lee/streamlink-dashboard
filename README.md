@@ -1,5 +1,9 @@
 # Streamlink Dashboard
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org/)
+
 A web-based dashboard application for real-time streaming recording using Streamlink.
 
 ## Project Overview
@@ -253,10 +257,6 @@ docker logs streamlink-dashboard 2>&1 | grep ERROR
 └── Dockerfile            # Multi-stage Docker build
 ```
 
-## License
-
-MIT License
-
 ## Contributing
 
 1. Fork the repository
@@ -267,4 +267,16 @@ MIT License
 
 ## License
 
-This project is licensed under the MIT License. See the `LICENSE` file for details.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for full details.
+
+### Third-Party Licenses
+
+This project uses various open-source dependencies. See [THIRD-PARTY-LICENSES.md](THIRD-PARTY-LICENSES.md) for complete license information and attribution details for all dependencies.
+
+**License Summary:**
+- Project: MIT License
+- Backend Dependencies: Primarily MIT, Apache-2.0, and BSD licensed
+- Frontend Dependencies: Primarily MIT licensed
+- All dependencies are MIT-compatible
+
+The project has been reviewed for license compatibility and is ready for open source release.
