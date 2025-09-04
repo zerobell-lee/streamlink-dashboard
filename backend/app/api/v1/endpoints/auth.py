@@ -2,13 +2,11 @@
 Authentication API endpoints
 """
 from fastapi import APIRouter, Depends, HTTPException, status, Header
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from pydantic import BaseModel
 from typing import Optional
 import hashlib
-import secrets
 
 from app.database.database import get_db
 from app.database.models import User
@@ -16,7 +14,6 @@ from app.core.config import settings
 from app.core.jwt import create_user_token, blacklist_token, clear_user_tokens, get_current_user_from_token
 
 router = APIRouter()
-security = HTTPBasic()
 
 class LoginRequest(BaseModel):
     username: str
@@ -37,11 +34,11 @@ class MessageResponse(BaseModel):
 
 @router.post("/login", response_model=LoginResponse)
 async def login(
-    credentials: HTTPBasicCredentials = Depends(security),
+    credentials: LoginRequest,
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Login with Basic Auth credentials and receive JWT token
+    Login with JSON credentials and receive JWT token
     """
     # Get user from database first
     result = await db.execute(
@@ -121,8 +118,7 @@ async def login(
     
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Incorrect username or password",
-        headers={"WWW-Authenticate": "Basic"},
+        detail="Incorrect username or password"
     )
 
 
