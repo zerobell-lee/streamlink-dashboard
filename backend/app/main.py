@@ -279,6 +279,55 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# API Request Logging Middleware
+from app.core.logging import log_api_request
+import time
+
+@app.middleware("http")
+async def log_requests(request, call_next):
+    """Log API requests with response time and status"""
+    start_time = time.time()
+    
+    # Process request
+    response = await call_next(request)
+    
+    # Only log API requests (not frontend proxy requests)
+    if request.url.path.startswith("/api/"):
+        process_time = time.time() - start_time
+        
+        # Try to get user info from auth header
+        user_id = None
+        try:
+            auth_header = request.headers.get("authorization")
+            if auth_header and auth_header.startswith("Bearer "):
+                # For now, just log that it's an authenticated request
+                user_id = "authenticated"
+        except Exception:
+            pass
+            
+        # Debug: print to console first to see if middleware is working
+        print(f"DEBUG: API request middleware triggered: {request.method} {request.url.path} -> {response.status_code}")
+            
+        # Log the API request
+        try:
+            log_api_request(
+                method=request.method,
+                path=request.url.path,
+                user_id=user_id,
+                status_code=response.status_code
+            )
+            print(f"DEBUG: log_api_request called successfully")
+        except Exception as e:
+            print(f"DEBUG: log_api_request failed: {e}")
+        
+        # Also log response time if it's slow
+        if process_time > 1.0:  # Log slow requests (>1 second)
+            from app.core.logging import get_category_logger
+            logger = get_category_logger("api")
+            logger.warning(f"Slow API request: {request.method} {request.url.path} took {process_time:.2f}s")
+    
+    return response
+
 # Include API router
 app.include_router(api_router, prefix="/api/v1")
 
