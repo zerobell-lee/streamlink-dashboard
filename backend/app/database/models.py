@@ -36,14 +36,13 @@ class User(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=get_local_now, onupdate=get_local_now)
 
 
-class PlatformConfig(Base):
-    """Platform configuration model"""
-    __tablename__ = "platform_configs"
+class PlatformUserConfig(Base):
+    """Platform user configuration model - stores only user-specific settings"""
+    __tablename__ = "platform_user_configs"
     
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
-    platform: Mapped[str] = mapped_column(String(50), unique=True, index=True)
-    additional_settings: Mapped[Dict] = mapped_column(JSON, default=dict)
-    enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    platform_name: Mapped[str] = mapped_column(String(50), primary_key=True, index=True)
+    user_credentials: Mapped[Dict] = mapped_column(JSON, default=dict, nullable=False)
+    custom_settings: Mapped[Dict] = mapped_column(JSON, default=dict, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=get_local_now)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=get_local_now, onupdate=get_local_now)
 

@@ -11,7 +11,7 @@ from alembic import context
 # Import your models and settings
 from app.database.models import Base
 from app.database.models import (
-    User, PlatformConfig, SystemConfig,
+    User, PlatformUserConfig, SystemConfig,
     RecordingSchedule, Recording, RecordingJob
 )
 from app.core.config import settings

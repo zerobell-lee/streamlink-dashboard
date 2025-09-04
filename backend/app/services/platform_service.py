@@ -1,76 +1,79 @@
 """
-Platform service for managing platform strategies and configurations
+Registry-based platform service for managing platform strategies and configurations
 """
+import logging
 from typing import Dict, List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, delete, update
 
-from app.database.models import PlatformConfig
+from app.database.models import PlatformUserConfig
 from app.services.platforms.strategy_factory import PlatformStrategyFactory
-from app.services.platforms.base_strategy import StreamInfo, StreamUrl
+from app.services.platforms.registry import PlatformRegistry, PlatformDefinition
+from app.services.platforms.base_strategy import PlatformStrategy, StreamInfo, StreamUrl
+
+logger = logging.getLogger(__name__)
 
 
 class PlatformService:
-    """Service for managing platform strategies and configurations"""
+    """Registry-based service for managing platform strategies and configurations"""
     
     def __init__(self, db: AsyncSession):
         self.db = db
-        self._strategies_cache: Dict[str, any] = {}
+        self._strategies_cache: Dict[str, PlatformStrategy] = {}
     
     def invalidate_cache(self, platform: str = None):
         """Invalidate strategy cache for a platform or all platforms"""
         if platform:
             self._strategies_cache.pop(platform, None)
+            logger.info(f"Invalidated cache for platform: {platform}")
         else:
             self._strategies_cache.clear()
+            logger.info("Invalidated all platform strategy cache")
     
-    async def get_platform_config(self, platform: str) -> Optional[PlatformConfig]:
+    async def get_platform_user_config(self, platform: str) -> Optional[PlatformUserConfig]:
         """
-        Get platform configuration from database
+        Get platform user configuration from database
         
         Args:
             platform: Platform name
             
         Returns:
-            PlatformConfig or None if not found
+            PlatformUserConfig or None if not found
         """
         result = await self.db.execute(
-            select(PlatformConfig).where(PlatformConfig.platform == platform)
+            select(PlatformUserConfig).where(PlatformUserConfig.platform_name == platform)
         )
         return result.scalar_one_or_none()
     
-    async def get_strategy(self, platform: str):
+    async def get_strategy(self, platform: str) -> Optional[PlatformStrategy]:
         """
-        Get or create strategy for a platform
+        Get or create strategy for a platform using registry and user configuration
         
         Args:
             platform: Platform name
             
         Returns:
-            PlatformStrategy instance or None if not supported
+            PlatformStrategy instance or None if not supported/configured
         """
         # Check cache first
         if platform in self._strategies_cache:
             return self._strategies_cache[platform]
         
-        # Get config from database
-        config = await self.get_platform_config(platform)
-        if not config:
-            return None
+        # Get user config from database
+        user_config_db = await self.get_platform_user_config(platform)
+        user_config = {}
         
-        # Create strategy
-        strategy = PlatformStrategyFactory.create_strategy(platform, {
-            "additional_settings": config.additional_settings,
-            "enabled": config.enabled,
-            # Platform-specific settings
-            "client_id": config.additional_settings.get("client_id", ""),
-            "client_secret": config.additional_settings.get("client_secret", ""),
-            "api_key": config.additional_settings.get("api_key", ""),
-            "api_token": config.additional_settings.get("api_token", ""),  # Add Twitch API token support
-        })
+        if user_config_db:
+            # Combine user credentials and custom settings
+            user_config.update(user_config_db.user_credentials)
+            user_config.update(user_config_db.custom_settings)
+        
+        # Create strategy using registry
+        strategy = PlatformStrategyFactory.create_strategy(platform, user_config)
         
         if strategy:
             self._strategies_cache[platform] = strategy
+            logger.info(f"Created and cached strategy for platform: {platform}")
         
         return strategy
     
@@ -126,70 +129,94 @@ class PlatformService:
         
         return strategy.get_streamlink_args(streamer_id, quality)
     
-    async def get_supported_platforms(self) -> List[str]:
-        """Get list of supported platforms"""
-        return PlatformStrategyFactory.get_supported_platforms()
+    # --- Registry-based Platform Management ---
     
-    async def get_enabled_platforms(self) -> List[PlatformConfig]:
-        """
-        Get list of enabled platform configurations
-        
-        Returns:
-            List of enabled PlatformConfig objects
-        """
-        result = await self.db.execute(
-            select(PlatformConfig).where(PlatformConfig.enabled == True)
-        )
-        return result.scalars().all()
+    def get_available_platforms(self) -> List[PlatformDefinition]:
+        """Get all available platforms from registry"""
+        return PlatformRegistry.get_all_platforms()
     
-    async def create_default_configs(self):
-        """Create default platform configurations if they don't exist"""
-        default_configs = [
-            {
-                "platform": "twitch",
-                "additional_settings": {
-                    "client_id": "",
-                    "client_secret": "",
-                    "api_token": "",  # User-provided Twitch API token
-                    "--twitch-disable-ads": True,
-                    "--twitch-disable-hosting": True,
-                },
-                "enabled": True
-            },
-            {
-                "platform": "youtube",
-                "additional_settings": {
-                    "api_key": "",
-                    "--youtube-live-chunk-size": "4",
-                    "--youtube-live-from-start": True,
-                },
-                "enabled": True
-            },
-            {
-                "platform": "sooplive",
-                "additional_settings": {
-                    "username": "",
-                    "password": "",
-                },
-                "enabled": True
-            },
-            {
-                "platform": "chzzk",
-                "additional_settings": {
-                    # Chzzk doesn't require authentication for basic stream checking
-                    # Additional Streamlink arguments can be added here if needed
-                },
-                "enabled": True
-            }
-        ]
+    def get_platform_definition(self, platform: str) -> Optional[PlatformDefinition]:
+        """Get platform definition from registry"""
+        return PlatformRegistry.get_platform(platform)
+    
+    def get_platform_schema(self, platform: str) -> Optional[Dict]:
+        """Get configuration schema for a platform"""
+        definition = PlatformRegistry.get_platform(platform)
+        return definition.config_schema if definition else None
+    
+    def validate_platform_config(self, platform: str, config: Dict) -> bool:
+        """Validate platform configuration against schema"""
+        return PlatformStrategyFactory.validate_platform_config(platform, config)
+    
+    # --- User Configuration Management ---
+    
+    async def update_platform_config(self, platform: str, user_credentials: Dict = None, custom_settings: Dict = None):
+        """
+        Update or create platform user configuration
         
-        for config_data in default_configs:
-            existing = await self.get_platform_config(config_data["platform"])
-            if not existing:
-                config = PlatformConfig(**config_data)
-                self.db.add(config)
+        Args:
+            platform: Platform name
+            user_credentials: User credentials (API keys, tokens, etc.)
+            custom_settings: Custom streamlink arguments and settings
+        """
+        # Validate platform exists in registry
+        if not PlatformRegistry.is_platform_supported(platform):
+            raise ValueError(f"Platform {platform} is not supported")
+        
+        # Validate configuration
+        combined_config = {}
+        if user_credentials:
+            combined_config.update(user_credentials)
+        if custom_settings:
+            combined_config.update(custom_settings)
+        
+        if combined_config and not self.validate_platform_config(platform, combined_config):
+            raise ValueError(f"Invalid configuration for platform {platform}")
+        
+        # Get existing config or create new one
+        existing = await self.get_platform_user_config(platform)
+        
+        if existing:
+            # Update existing config
+            if user_credentials is not None:
+                existing.user_credentials = user_credentials
+            if custom_settings is not None:
+                existing.custom_settings = custom_settings
+        else:
+            # Create new config
+            new_config = PlatformUserConfig(
+                platform_name=platform,
+                user_credentials=user_credentials or {},
+                custom_settings=custom_settings or {}
+            )
+            self.db.add(new_config)
         
         await self.db.commit()
+        
+        # Invalidate cache for this platform
+        self.invalidate_cache(platform)
+        logger.info(f"Updated configuration for platform: {platform}")
+    
+    async def delete_platform_config(self, platform: str):
+        """Delete platform user configuration"""
+        await self.db.execute(
+            delete(PlatformUserConfig).where(PlatformUserConfig.platform_name == platform)
+        )
+        await self.db.commit()
+        
+        # Invalidate cache for this platform
+        self.invalidate_cache(platform)
+        logger.info(f"Deleted configuration for platform: {platform}")
+    
+    async def get_configured_platforms(self) -> List[str]:
+        """Get list of platforms that have user configurations"""
+        result = await self.db.execute(select(PlatformUserConfig.platform_name))
+        return [row[0] for row in result.fetchall()]
+    
+    async def get_all_platform_configs(self) -> List[PlatformUserConfig]:
+        """Get all platform user configurations"""
+        result = await self.db.execute(select(PlatformUserConfig))
+        return result.scalars().all()
     
     async def close(self):
         """Close all strategy sessions"""
@@ -197,3 +224,4 @@ class PlatformService:
             if hasattr(strategy, 'close'):
                 await strategy.close()
         self._strategies_cache.clear()
+        logger.info("Closed all platform strategy sessions")

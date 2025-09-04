@@ -4,7 +4,7 @@ from .database import get_db, init_db, engine, AsyncSessionLocal
 from .models import Base
 from .models import (
     User,
-    PlatformConfig,
+    PlatformUserConfig,
     SystemConfig,
     RecordingSchedule,
     Recording,
@@ -18,7 +18,7 @@ __all__ = [
     "engine",
     "AsyncSessionLocal",
     "User",
-    "PlatformConfig",
+    "PlatformUserConfig",
     "SystemConfig",
     "RecordingSchedule",
     "Recording",

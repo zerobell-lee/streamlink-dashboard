@@ -168,12 +168,6 @@ async def lifespan(app: FastAPI):
     # Initialize scheduler service and create default data
     try:
         async with AsyncSessionLocal() as db:
-            # Create default platform configurations
-            from app.services.platform_service import PlatformService
-            platform_service = PlatformService(db)
-            await platform_service.create_default_configs()
-            
-            
             # Create default admin user if not exists
             from app.database.models import User
             from sqlalchemy import select
