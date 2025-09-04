@@ -17,10 +17,23 @@ import subprocess
 
 from app.core.config import settings, ensure_app_directories
 
-# Configure logging
-logging.basicConfig(
-    level=getattr(logging, settings.LOG_LEVEL.upper()),
-    format=settings.LOG_FORMAT
+# Configure advanced logging system
+from app.core.logging import setup_logging
+
+# Setup logging with categories based on settings
+categories = {
+    "app": settings.LOG_CATEGORY_APP,
+    "database": settings.LOG_CATEGORY_DATABASE,
+    "api": settings.LOG_CATEGORY_API,  
+    "scheduler": settings.LOG_CATEGORY_SCHEDULER,
+    "error": settings.LOG_CATEGORY_ERROR
+}
+
+setup_logging(
+    enable_file_logging=settings.ENABLE_FILE_LOGGING,
+    enable_json_logging=settings.ENABLE_JSON_LOGGING,
+    log_level=settings.LOG_LEVEL,
+    categories=categories
 )
 
 from app.database.database import engine, get_db, AsyncSessionLocal

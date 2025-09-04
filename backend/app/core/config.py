@@ -50,6 +50,20 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
     LOG_FORMAT: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     
+    # Advanced Logging Configuration
+    ENABLE_FILE_LOGGING: bool = True
+    ENABLE_JSON_LOGGING: bool = False
+    LOG_MAX_FILES_PER_CATEGORY: int = 10
+    LOG_MAX_FILE_SIZE_MB: int = 50
+    LOG_RETENTION_DAYS: int = 30
+    
+    # Log Categories (enabled by default)
+    LOG_CATEGORY_APP: bool = True
+    LOG_CATEGORY_DATABASE: bool = True  
+    LOG_CATEGORY_API: bool = True
+    LOG_CATEGORY_SCHEDULER: bool = True
+    LOG_CATEGORY_ERROR: bool = True
+    
     # Basic Auth (for internal network)
     BASIC_AUTH_USERNAME: str = "admin"
     BASIC_AUTH_PASSWORD: str = "admin123"
