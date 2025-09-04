@@ -9,7 +9,7 @@ from typing import Dict, List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from app.database.models import RecordingSchedule, Recording, PlatformConfig, User
+from app.database.models import RecordingSchedule, Recording
 from app.services.platform_service import PlatformService
 from app.services.streamlink_service import StreamlinkService
 from app.core.config import settings
