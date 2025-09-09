@@ -16,6 +16,9 @@
     </a>
 </p>
 
+**🌐 Read this in other languages:**
+[한국어](README.ko.md) | [English](README.md)
+
 ---
 
 **🚀 Never miss your favorite streams again!** Automatically record live streams from multiple platforms with a sleek, modern web dashboard.
