@@ -118,6 +118,10 @@ class StreamlinkService:
                 logger.error(f"Could not get Streamlink arguments for {platform}/{streamer_id}")
                 return False
             
+            # Add debug logging level for better error capture
+            args.extend(["--loglevel", "debug"])
+            logger.info("Added --loglevel debug for better error capture")
+            
             # Add output path if provided
             if output_path:
                 args.extend(["--output", output_path])
@@ -170,10 +174,17 @@ class StreamlinkService:
             logger.info(f"Command: {' '.join(cmd)}")
             logger.info(f"Working directory: {os.getcwd()}")
             
+            # Set up environment variables for better output capture
+            env = os.environ.copy()
+            env['PYTHONUNBUFFERED'] = '1'
+            logger.info("Set PYTHONUNBUFFERED=1 for better stderr capture")
+            
             process = await asyncio.create_subprocess_exec(
                 *cmd,
                 stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                stderr=asyncio.subprocess.PIPE,
+                env=env,
+                limit=1024*1024  # 1MB buffer limit
             )
             
             logger.info(f"Streamlink process started with PID: {process.pid}")
@@ -293,16 +304,74 @@ class StreamlinkService:
     
     async def _monitor_recording(self, recording_id: int, process: asyncio.subprocess.Process, output_path: str):
         """
-        Monitor a recording process
+        Monitor a recording process with real-time stderr capture
         
         Args:
             recording_id: Database recording ID
             process: Subprocess process
             output_path: Output file path
         """
+        stderr_lines = []
+        stdout_lines = []
+        
         try:
+            logger.info(f"Starting real-time monitoring for recording {recording_id}")
+            
+            # Create tasks for real-time stdout and stderr reading
+            async def read_stderr():
+                try:
+                    while True:
+                        line = await process.stderr.readline()
+                        if not line:
+                            break
+                        line_text = line.decode('utf-8', errors='ignore').strip()
+                        if line_text:
+                            stderr_lines.append(line_text)
+                            logger.debug(f"Recording {recording_id} stderr: {line_text}")
+                except Exception as e:
+                    logger.error(f"Error reading stderr for recording {recording_id}: {e}")
+            
+            async def read_stdout():
+                try:
+                    while True:
+                        line = await process.stdout.readline()
+                        if not line:
+                            break
+                        line_text = line.decode('utf-8', errors='ignore').strip()
+                        if line_text:
+                            stdout_lines.append(line_text)
+                            logger.debug(f"Recording {recording_id} stdout: {line_text}")
+                except Exception as e:
+                    logger.error(f"Error reading stdout for recording {recording_id}: {e}")
+            
+            # Start reading tasks
+            stderr_task = asyncio.create_task(read_stderr())
+            stdout_task = asyncio.create_task(read_stdout())
+            
             # Wait for process to complete
-            stdout, stderr = await process.communicate()
+            logger.info(f"Waiting for recording {recording_id} process to complete...")
+            await process.wait()
+            
+            # Wait a bit more for any remaining output to be read
+            await asyncio.sleep(0.5)
+            
+            # Cancel reading tasks
+            stderr_task.cancel()
+            stdout_task.cancel()
+            
+            # Wait for tasks to finish
+            try:
+                await stderr_task
+            except asyncio.CancelledError:
+                pass
+            
+            try:
+                await stdout_task
+            except asyncio.CancelledError:
+                pass
+            
+            logger.info(f"Recording {recording_id} process completed with return code: {process.returncode}")
+            logger.info(f"Captured {len(stderr_lines)} stderr lines and {len(stdout_lines)} stdout lines")
             
             # Update recording status
             result = await self.db.execute(
@@ -323,15 +392,22 @@ class StreamlinkService:
                 else:
                     recording.status = "failed"
                     error_msg = f"Recording failed with return code {process.returncode}"
-                    if stderr:
-                        stderr_text = stderr.decode('utf-8', errors='ignore').strip()
-                        if stderr_text:
-                            error_msg += f" - {stderr_text}"
-                            logger.error(f"Stderr: {stderr_text}")
-                        else:
-                            logger.error("Stderr: (empty)")
+                    
+                    # Combine stderr lines into error message
+                    if stderr_lines:
+                        stderr_text = '\n'.join(stderr_lines[-10:])  # Last 10 lines
+                        error_msg += f"\n--- Stderr Output ---\n{stderr_text}"
+                        logger.error(f"Recording {recording_id} stderr ({len(stderr_lines)} lines):")
+                        for i, line in enumerate(stderr_lines[-5:], 1):  # Log last 5 lines
+                            logger.error(f"  [{i}] {line}")
                     else:
-                        logger.error("Stderr: (None)")
+                        logger.error(f"Recording {recording_id}: No stderr output captured")
+                        error_msg += "\nNo stderr output was captured (possible buffer issue)"
+                    
+                    # Also include last few stdout lines for context
+                    if stdout_lines:
+                        stdout_text = '\n'.join(stdout_lines[-5:])  # Last 5 lines  
+                        error_msg += f"\n--- Last Stdout Output ---\n{stdout_text}"
                     
                     recording.error_message = error_msg
                     logger.error(f"Recording {recording_id} failed with return code {process.returncode}")
@@ -354,6 +430,7 @@ class StreamlinkService:
         except asyncio.CancelledError:
             # Recording was cancelled
             logger.info(f"Recording {recording_id} was cancelled")
+            logger.info(f"Captured {len(stderr_lines)} stderr lines and {len(stdout_lines)} stdout lines before cancellation")
             
             # Kill the process
             if process.returncode is None:
@@ -373,6 +450,17 @@ class StreamlinkService:
                 recording.status = "completed"
                 recording.end_time = datetime.now()
                 
+                # Add stderr/stdout info to error message if available
+                if stderr_lines or stdout_lines:
+                    error_parts = ["Recording cancelled by user/scheduler"]
+                    if stderr_lines:
+                        error_parts.append(f"--- Last Stderr Output ({len(stderr_lines)} lines) ---")
+                        error_parts.extend(stderr_lines[-5:])  # Last 5 lines
+                    if stdout_lines:
+                        error_parts.append(f"--- Last Stdout Output ({len(stdout_lines)} lines) ---") 
+                        error_parts.extend(stdout_lines[-5:])  # Last 5 lines
+                    recording.error_message = '\n'.join(error_parts)
+                
                 # Calculate duration
                 if recording.start_time and recording.end_time:
                     duration = (recording.end_time - recording.start_time).total_seconds()
@@ -390,6 +478,15 @@ class StreamlinkService:
                 
         except Exception as e:
             logger.error(f"Error monitoring recording {recording_id}: {e}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            
+            # Log captured output for debugging
+            logger.error(f"Captured {len(stderr_lines)} stderr lines and {len(stdout_lines)} stdout lines before error")
+            if stderr_lines:
+                logger.error("Last stderr lines:")
+                for line in stderr_lines[-3:]:
+                    logger.error(f"  {line}")
             
             # Update recording status to failed
             result = await self.db.execute(
@@ -400,7 +497,16 @@ class StreamlinkService:
             if recording:
                 recording.status = "failed"
                 recording.end_time = datetime.now()
-                recording.error_message = f"Exception during recording monitoring: {str(e)}"
+                
+                error_parts = [f"Exception during recording monitoring: {str(e)}"]
+                if stderr_lines:
+                    error_parts.append(f"--- Stderr Output ({len(stderr_lines)} lines) ---")
+                    error_parts.extend(stderr_lines[-5:])  # Last 5 lines
+                if stdout_lines:
+                    error_parts.append(f"--- Stdout Output ({len(stdout_lines)} lines) ---")
+                    error_parts.extend(stdout_lines[-5:])  # Last 5 lines
+                
+                recording.error_message = '\n'.join(error_parts)
                 await self.db.commit()
             
             # Remove from active recordings
