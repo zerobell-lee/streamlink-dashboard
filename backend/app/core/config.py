@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     # Application
     APP_NAME: str = "Streamlink Dashboard"
     DEBUG: bool = True
-    VERSION: str = "1.0.0"
+    VERSION: str = os.getenv("VERSION", "0.5.0")
     
     APP_DATA_DIR: str = os.getenv("APP_DATA_DIR", "/app/app_data")
     

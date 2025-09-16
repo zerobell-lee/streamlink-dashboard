@@ -1,0 +1,166 @@
+name: Create Release Branch
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., 1.0.0, 0.6.1, 1.2.0-beta.1)'
+        required: true
+        type: string
+      base_branch:
+        description: 'Base branch for the release'
+        required: false
+        default: 'develop'
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  create-release-branch:
+    name: Create Release Branch
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Validate version format
+        run: |
+          version="${{ inputs.version }}"
+          if ! echo "$version" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9\-\.]+)?$'; then
+            echo "ERROR: Invalid version format. Expected: X.Y.Z or X.Y.Z-suffix"
+            echo "Examples: 1.0.0, 0.5.0, 1.0.0-beta.1"
+            exit 1
+          fi
+          echo "Version format is valid: $version"
+          
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.base_branch }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Configure Git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+      - name: Check if release branch already exists
+        run: |
+          branch_name="release/v${{ inputs.version }}"
+          if git show-ref --verify --quiet refs/remotes/origin/$branch_name; then
+            echo "ERROR: Release branch '$branch_name' already exists"
+            exit 1
+          fi
+          if git show-ref --verify --quiet refs/heads/$branch_name; then
+            echo "ERROR: Local release branch '$branch_name' already exists"
+            exit 1
+          fi
+          echo "Release branch '$branch_name' does not exist, proceeding..."
+          
+      - name: Create release branch
+        run: |
+          branch_name="release/v${{ inputs.version }}"
+          echo "Creating release branch: $branch_name"
+          git checkout -b "$branch_name"
+          git push -u origin "$branch_name"
+          
+      - name: Make scripts executable
+        run: |
+          chmod +x scripts/check-version-sync.sh
+          chmod +x scripts/update-version.sh
+          
+      - name: Update version using script
+        run: |
+          echo "Updating version to ${{ inputs.version }}"
+          ./scripts/update-version.sh "${{ inputs.version }}"
+          
+      - name: Verify version synchronization
+        run: |
+          echo "Verifying version synchronization..."
+          ./scripts/check-version-sync.sh
+          
+      - name: Commit version changes
+        run: |
+          if git diff --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          
+          echo "Committing version changes..."
+          git add .
+          git commit -m "chore: bump version to v${{ inputs.version }}
+
+          - Updated backend/.env VERSION=${{ inputs.version }}
+          - Updated frontend/.env.local NEXT_PUBLIC_APP_VERSION=${{ inputs.version }}
+          - Updated .env.example with new version
+          - Automated version synchronization via GitHub Actions
+          
+          Created release branch: release/v${{ inputs.version }}"
+          
+      - name: Push version changes
+        run: |
+          echo "Pushing version changes to release branch..."
+          git push origin "release/v${{ inputs.version }}"
+          
+      - name: Create pull request
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Release v${{ inputs.version }}`,
+              head: `release/v${{ inputs.version }}`,
+              base: 'master',
+              body: `## Release v${{ inputs.version }}
+
+              This PR contains the release preparation for version ${{ inputs.version }}.
+
+              ### Changes
+              - ✅ Version bumped to \`${{ inputs.version }}\` across all configuration files
+              - ✅ Backend and frontend versions synchronized
+              - ✅ Version validation completed
+
+              ### Automated Changes
+              - \`backend/.env\`: Updated \`VERSION=${{ inputs.version }}\`
+              - \`frontend/.env.local\`: Updated \`NEXT_PUBLIC_APP_VERSION=${{ inputs.version }}\`
+              - \`.env.example\`: Updated version references
+
+              ### Next Steps
+              1. Review the version changes
+              2. Merge this PR to create the release
+              3. Create a GitHub release with tag \`v${{ inputs.version }}\`
+
+              ---
+              🤖 This PR was created automatically by GitHub Actions.`,
+              draft: false
+            });
+            
+            console.log(`Created pull request #${pr.number}: ${pr.html_url}`);
+            
+            // Add labels if they exist
+            try {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                labels: ['release', 'automated']
+              });
+            } catch (error) {
+              console.log('Labels not added (labels may not exist):', error.message);
+            }
+            
+      - name: Summary
+        run: |
+          echo "🎉 Release branch creation completed!"
+          echo "📋 Summary:"
+          echo "  - Branch: release/v${{ inputs.version }}"
+          echo "  - Version: ${{ inputs.version }}"
+          echo "  - Base: ${{ inputs.base_branch }}"
+          echo "  - Pull Request: Created automatically"
+          echo ""
+          echo "Next steps:"
+          echo "1. Review the created pull request"
+          echo "2. Merge to master when ready"
+          echo "3. Create GitHub release with tag v${{ inputs.version }}"
