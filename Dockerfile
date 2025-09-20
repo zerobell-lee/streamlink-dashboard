@@ -1,5 +1,12 @@
 # Stage 1: Frontend Build
 FROM node:20-alpine AS frontend-builder
+
+# Accept version as build argument
+ARG VERSION=dev
+
+# Set environment variable for Next.js build
+ENV NEXT_PUBLIC_APP_VERSION=${VERSION}
+
 WORKDIR /app/frontend
 
 # Copy package files
@@ -10,13 +17,19 @@ RUN npm install
 COPY frontend/ .
 RUN npm run build
 
-# Stage 2: Backend Production  
+# Stage 2: Backend Production
 FROM python:3.10-slim
 
-# Install system dependencies
+# Accept version as build argument
+ARG VERSION=dev
+
+# Install system dependencies including build tools for ARM64 compatibility
 RUN apt-get update && apt-get install -y \
     ffmpeg \
     curl \
+    gcc \
+    python3-dev \
+    build-essential \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
@@ -50,6 +63,7 @@ RUN mkdir -p /app/app_data/{database,recordings,logs,config} \
 USER appuser
 
 # Set environment variables
+ENV VERSION=${VERSION}
 ENV APP_DATA_DIR=/app/app_data
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
