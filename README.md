@@ -7,7 +7,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org/)
-[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker)](https://hub.docker.com/r/zerobell/streamlink-dashboard)
+[![Docker Hub](https://img.shields.io/docker/v/zerobell/streamlink-dashboard?logo=docker&label=Docker%20Hub)](https://hub.docker.com/r/zerobell/streamlink-dashboard)
+[![Docker Pulls](https://img.shields.io/docker/pulls/zerobell/streamlink-dashboard?logo=docker)](https://hub.docker.com/r/zerobell/streamlink-dashboard)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/zerobell-lee/streamlink-dashboard/docker-release.yml?logo=github&label=Docker%20Build)](https://github.com/zerobell-lee/streamlink-dashboard/actions/workflows/docker-release.yml)
 [![FastAPI](https://img.shields.io/badge/FastAPI-109989?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 
 <p>
@@ -172,22 +174,38 @@ Managed through the web dashboard:
 
 ### 🐳 **One-Click Docker Deployment** (Recommended)
 
-```bash
-# 1️⃣ Clone and build
-git clone https://github.com/your-username/streamlink-dashboard.git
-cd streamlink-dashboard
-docker build -t streamlink-dashboard .
+#### Option 1: Using Pre-built Image from Docker Hub (Fastest)
 
-# 2️⃣ Run with persistent data
+```bash
+# 1️⃣ Create data directory and run
+mkdir -p ./app_data
 docker run -d \
   --name streamlink-dashboard \
   -p 8000:8000 \
   -v $(pwd)/app_data:/app/app_data \
-  streamlink-dashboard
+  zerobell/streamlink-dashboard:latest
 
-# 3️⃣ Open your browser
+# 2️⃣ Open your browser
 echo "🎉 Dashboard ready at: http://localhost:8000"
-echo "🔑 Default login: admin/admin123"
+echo "🔑 First-time setup: Create your admin account in the web interface"
+```
+
+#### Option 2: Using Docker Compose
+
+```bash
+# Download and run
+curl -O https://raw.githubusercontent.com/zerobell-lee/streamlink-dashboard/master/docker-compose.yml
+docker-compose up -d
+```
+
+#### Option 3: Build from Source
+
+```bash
+# Clone, build and run
+git clone https://github.com/zerobell-lee/streamlink-dashboard.git
+cd streamlink-dashboard
+docker build -t streamlink-dashboard .
+docker run -d --name streamlink-dashboard -p 8000:8000 -v $(pwd)/app_data:/app/app_data streamlink-dashboard
 ```
 
 ### 👨‍💻 **Development Mode**
@@ -259,11 +277,11 @@ docker run -d \
 
 ## Authentication
 
-### Authentication
-- **HTTP Basic Auth**: Simple username/password authentication
-- **JWT Tokens**: Secure session management
-- **Default Admin**: admin/admin123 (change after first login)
-- **Role-based Access**: Admin and user roles supported
+### JWT-based Authentication
+- **User Accounts**: Create and manage user accounts with role-based access
+- **JWT Tokens**: Secure session management with token-based authentication
+- **First-time Setup**: Create your admin account during initial setup
+- **Role-based Access**: Admin and regular user roles with different permissions
 
 ## Configuration Management
 
