@@ -60,6 +60,7 @@ const menuItems = [
 
 export default function Sidebar({ isOpen, onClose, isCollapsed = false, onToggleCollapse }: SidebarProps) {
   const pathname = usePathname();
+  const version = process.env.NEXT_PUBLIC_APP_VERSION || '0.5.0';
   
   return (
     <>
@@ -148,7 +149,7 @@ export default function Sidebar({ isOpen, onClose, isCollapsed = false, onToggle
             <div className="p-4 border-t border-gray-200">
               <div className="text-sm text-gray-500">
                 <div className="font-medium">Streamlink Dashboard</div>
-                <div>v1.0.0</div>
+                <div>v{version}</div>
               </div>
             </div>
           )}
