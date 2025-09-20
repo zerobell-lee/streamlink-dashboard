@@ -12,8 +12,6 @@ services:
       - APP_DATA_DIR=/app/app_data
       - DEBUG=false
       - LOG_LEVEL=INFO
-      - BASIC_AUTH_USERNAME=admin
-      - BASIC_AUTH_PASSWORD=admin123
       - AUTO_START_SCHEDULER=true
     restart: unless-stopped
     healthcheck:
