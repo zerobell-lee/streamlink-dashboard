@@ -10,10 +10,10 @@ from datetime import datetime
 from app.database.database import get_db
 from app.database.models import RecordingSchedule, User
 from app.core.auth import get_current_user
-from app.services.scheduler_service import SchedulerService
+from app.core.service_container import get_service_container
 from app.schemas.schedule import (
-    RecordingScheduleCreate, 
-    RecordingScheduleResponse, 
+    RecordingScheduleCreate,
+    RecordingScheduleResponse,
     RecordingScheduleUpdate,
     ScheduleStatusResponse
 )
@@ -23,14 +23,14 @@ router = APIRouter()
 
 @router.get("/status")
 async def get_scheduler_status(
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Get scheduler status and information
     """
-    scheduler_service = SchedulerService(db)
-    
+    container = get_service_container()
+    scheduler_service = container.get_scheduler_service()
+
     return {
         "scheduler_info": scheduler_service.get_scheduler_info(),
         "active_recordings": await scheduler_service.get_active_recordings(),
@@ -40,22 +40,22 @@ async def get_scheduler_status(
 
 @router.post("/start")
 async def start_scheduler(
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Start the scheduler
     """
-    scheduler_service = SchedulerService(db)
-    
+    container = get_service_container()
+    scheduler_service = container.get_scheduler_service()
+
     if scheduler_service.is_running():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Scheduler is already running"
         )
-    
+
     await scheduler_service.start()
-    
+
     return {
         "message": "Scheduler started successfully",
         "scheduler_info": scheduler_service.get_scheduler_info()
@@ -64,22 +64,22 @@ async def start_scheduler(
 
 @router.post("/stop")
 async def stop_scheduler(
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Stop the scheduler
     """
-    scheduler_service = SchedulerService(db)
-    
+    container = get_service_container()
+    scheduler_service = container.get_scheduler_service()
+
     if not scheduler_service.is_running():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Scheduler is not running"
         )
-    
+
     await scheduler_service.stop()
-    
+
     return {
         "message": "Scheduler stopped successfully",
         "scheduler_info": scheduler_service.get_scheduler_info()
@@ -88,14 +88,16 @@ async def stop_scheduler(
 
 @router.get("/schedules", response_model=List[RecordingScheduleResponse])
 async def get_schedules(
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Get list of all recording schedules
     """
-    result = await db.execute(select(RecordingSchedule))
-    schedules = result.scalars().all()
+    container = get_service_container()
+
+    async with container.get_uow_factory()() as uow:
+        result = await uow._session.execute(select(RecordingSchedule))
+        schedules = result.scalars().all()
     
     return [
         RecordingScheduleResponse(
@@ -125,22 +127,21 @@ async def get_schedules(
 @router.get("/schedules/{schedule_id}", response_model=RecordingScheduleResponse)
 async def get_schedule(
     schedule_id: int,
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Get specific recording schedule
     """
-    result = await db.execute(
-        select(RecordingSchedule).where(RecordingSchedule.id == schedule_id)
-    )
-    schedule = result.scalar_one_or_none()
-    
-    if not schedule:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Schedule {schedule_id} not found"
-        )
+    container = get_service_container()
+
+    async with container.get_uow_factory()() as uow:
+        schedule = await uow.schedules.get_by_id(schedule_id)
+
+        if not schedule:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Schedule {schedule_id} not found"
+            )
     
     return RecordingScheduleResponse(
         id=schedule.id,
@@ -167,26 +168,19 @@ async def get_schedule(
 @router.post("/schedules", response_model=RecordingScheduleResponse)
 async def create_schedule(
     schedule_data: RecordingScheduleCreate,
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Create a new recording schedule
     """
+    container = get_service_container()
+    scheduler_service = container.get_scheduler_service()
+
     # Create schedule object
     schedule = RecordingSchedule(**schedule_data.model_dump())
-    db.add(schedule)
-    await db.commit()
-    await db.refresh(schedule)
-    
-    # Add to global scheduler service if enabled
-    if schedule.enabled:
-        from app.main import scheduler_service
-        if scheduler_service:
-            await scheduler_service._start_monitoring(schedule)
-    
-    success = True
-    
+
+    success = await scheduler_service.add_schedule(schedule)
+
     if not success:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -219,43 +213,41 @@ async def create_schedule(
 async def update_schedule(
     schedule_id: int,
     schedule_update: RecordingScheduleUpdate,
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Update a recording schedule
     """
-    # Get existing schedule
-    result = await db.execute(
-        select(RecordingSchedule).where(RecordingSchedule.id == schedule_id)
-    )
-    schedule = result.scalar_one_or_none()
-    
-    if not schedule:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Schedule {schedule_id} not found"
-        )
-    
-    # Update fields
-    for field, value in schedule_update.model_dump(exclude_unset=True).items():
-        setattr(schedule, field, value)
-    
-    await db.commit()
-    await db.refresh(schedule)
-    
-    # Update scheduler service
-    from app.main import scheduler_service
-    if scheduler_service:
+    container = get_service_container()
+
+    async with container.get_uow_factory()() as uow:
+        # Get existing schedule
+        schedule = await uow.schedules.get_by_id(schedule_id)
+
+        if not schedule:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Schedule {schedule_id} not found"
+            )
+
+        # Update fields
+        for field, value in schedule_update.model_dump(exclude_unset=True).items():
+            setattr(schedule, field, value)
+
+        await uow.schedules.update(schedule)
+        await uow.commit()
+
+        # Update scheduler service
+        scheduler_service = container.get_scheduler_service()
         await scheduler_service._start_monitoring(schedule)
-    
-    success = True
-    
-    if not success:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to update schedule"
-        )
+
+        success = True
+
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to update schedule"
+            )
     
     return RecordingScheduleResponse(
         id=schedule.id,
@@ -282,91 +274,81 @@ async def update_schedule(
 @router.delete("/schedules/{schedule_id}")
 async def delete_schedule(
     schedule_id: int,
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Delete a recording schedule
     """
-    result = await db.execute(
-        select(RecordingSchedule).where(RecordingSchedule.id == schedule_id)
-    )
-    schedule = result.scalar_one_or_none()
-    
-    if not schedule:
+    container = get_service_container()
+    scheduler_service = container.get_scheduler_service()
+
+    success = await scheduler_service.delete_schedule(schedule_id)
+
+    if not success:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Schedule not found"
         )
-    
-    # Remove from scheduler service first
-    from app.main import scheduler_service
-    if scheduler_service:
-        await scheduler_service.stop_monitoring(schedule.id)
-    
-    # Delete from database
-    await db.delete(schedule)
-    await db.commit()
-    
+
     return {"message": "Schedule deleted successfully"}
 
 
 @router.get("/schedules/{schedule_id}/status", response_model=ScheduleStatusResponse)
 async def get_schedule_status(
     schedule_id: int,
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Get status of a specific schedule
     """
-    scheduler_service = SchedulerService(db)
-    
+    container = get_service_container()
+    scheduler_service = container.get_scheduler_service()
+
     status_info = await scheduler_service.get_schedule_status(schedule_id)
-    
+
     if not status_info:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Schedule {schedule_id} not found or not active"
         )
-    
+
     return ScheduleStatusResponse(**status_info)
 
 
 @router.post("/schedules/{schedule_id}/trigger")
 async def trigger_schedule_now(
     schedule_id: int,
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Trigger an immediate stream check for a schedule
     """
-    scheduler_service = SchedulerService(db)
-    
+    container = get_service_container()
+    scheduler_service = container.get_scheduler_service()
+
     success = await scheduler_service.trigger_check_now(schedule_id)
-    
+
     if not success:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to trigger stream check"
         )
-    
+
     return {"message": f"Stream check triggered for schedule {schedule_id}"}
 
 
 @router.get("/active-recordings")
 async def get_active_recordings(
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Get list of currently active recordings
     """
-    scheduler_service = SchedulerService(db)
-    
+    container = get_service_container()
+    scheduler_service = container.get_scheduler_service()
+
     active_recordings = await scheduler_service.get_active_recordings()
-    
+
     return {
         "active_recordings": active_recordings,
         "count": len(active_recordings)
@@ -375,20 +357,20 @@ async def get_active_recordings(
 
 @router.post("/stop-all-recordings")
 async def stop_all_recordings(
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Stop all active recordings
     """
-    scheduler_service = SchedulerService(db)
-    
+    container = get_service_container()
+    scheduler_service = container.get_scheduler_service()
+
     success = await scheduler_service.stop_all_recordings()
-    
+
     if not success:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to stop all recordings"
         )
-    
+
     return {"message": "All recordings stopped successfully"}
