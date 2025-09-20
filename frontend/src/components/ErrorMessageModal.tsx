@@ -120,10 +120,10 @@ ${errorMessage}`;
                       </Dialog.Title>
                       {recordingInfo && (
                         <div className="mt-1 text-sm text-gray-600 space-y-1">
-                          <div><span className="font-medium">파일:</span> {recordingInfo.fileName}</div>
-                          <div><span className="font-medium">스트리머:</span> {recordingInfo.streamerName}</div>
-                          <div><span className="font-medium">플랫폼:</span> {recordingInfo.platform}</div>
-                          <div><span className="font-medium">시작 시간:</span> {recordingInfo.startTime}</div>
+                          <div><span className="font-medium">File:</span> {recordingInfo.fileName}</div>
+                          <div><span className="font-medium">Streamer:</span> {recordingInfo.streamerName}</div>
+                          <div><span className="font-medium">Platform:</span> {recordingInfo.platform}</div>
+                          <div><span className="font-medium">Start Time:</span> {recordingInfo.startTime}</div>
                         </div>
                       )}
                     </div>
@@ -142,12 +142,12 @@ ${errorMessage}`;
                       {copied ? (
                         <>
                           <Check className="h-4 w-4" />
-                          <span>복사됨</span>
+                          <span>Copied</span>
                         </>
                       ) : (
                         <>
                           <Copy className="h-4 w-4" />
-                          <span>복사</span>
+                          <span>Copy</span>
                         </>
                       )}
                     </button>
@@ -157,7 +157,7 @@ ${errorMessage}`;
                       className="text-gray-400 hover:text-gray-600 transition-colors"
                       onClick={onClose}
                     >
-                      <span className="sr-only">닫기</span>
+                      <span className="sr-only">Close</span>
                       <X className="h-6 w-6" />
                     </button>
                   </div>
@@ -173,7 +173,7 @@ ${errorMessage}`;
                     className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                     onClick={onClose}
                   >
-                    닫기
+                    Close
                   </button>
                 </div>
               </Dialog.Panel>

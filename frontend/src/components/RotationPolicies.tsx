@@ -116,7 +116,7 @@ const RotationPolicies = () => {
       case 'time': return <Clock className="h-5 w-5 text-blue-500" />;
       case 'count': return <Hash className="h-5 w-5 text-green-500" />;
       case 'size': return <HardDrive className="h-5 w-5 text-purple-500" />;
-      default: return <Settings className="h-5 w-5 text-gray-500" />;
+      default: return <Settings className="h-5 w-5 text-muted-foreground" />;
     }
   };
 
@@ -137,8 +137,8 @@ const RotationPolicies = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Rotation Policies</h1>
-          <p className="text-gray-600 mt-2">Create and manage file cleanup policies for your recording schedules</p>
+          <h1 className="text-3xl font-bold text-foreground">Rotation Policies</h1>
+          <p className="text-muted-foreground mt-2">Create and manage file cleanup policies for your recording schedules</p>
         </div>
         <button
           onClick={handleCreate}
@@ -151,40 +151,40 @@ const RotationPolicies = () => {
 
       {/* Policy Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg border p-4">
+        <div className="bg-card rounded-lg border p-4">
           <div className="flex items-center space-x-2 mb-2">
             <Settings className="h-4 w-4 text-blue-500" />
-            <span className="text-sm text-gray-600">Total Policies</span>
+            <span className="text-sm text-muted-foreground">Total Policies</span>
           </div>
-          <p className="text-2xl font-bold text-gray-900">{policies.length}</p>
+          <p className="text-2xl font-bold text-foreground">{policies.length}</p>
         </div>
-        <div className="bg-white rounded-lg border p-4">
+        <div className="bg-card rounded-lg border p-4">
           <div className="flex items-center space-x-2 mb-2">
             <Hash className="h-4 w-4 text-green-500" />
-            <span className="text-sm text-gray-600">Count-based</span>
+            <span className="text-sm text-muted-foreground">Count-based</span>
           </div>
-          <p className="text-2xl font-bold text-gray-900">{policies.filter(p => p.policy_type === 'count').length}</p>
+          <p className="text-2xl font-bold text-foreground">{policies.filter(p => p.policy_type === 'count').length}</p>
         </div>
-        <div className="bg-white rounded-lg border p-4">
+        <div className="bg-card rounded-lg border p-4">
           <div className="flex items-center space-x-2 mb-2">
             <Clock className="h-4 w-4 text-blue-500" />
-            <span className="text-sm text-gray-600">Time-based</span>
+            <span className="text-sm text-muted-foreground">Time-based</span>
           </div>
-          <p className="text-2xl font-bold text-gray-900">{policies.filter(p => p.policy_type === 'time').length}</p>
+          <p className="text-2xl font-bold text-foreground">{policies.filter(p => p.policy_type === 'time').length}</p>
         </div>
-        <div className="bg-white rounded-lg border p-4">
+        <div className="bg-card rounded-lg border p-4">
           <div className="flex items-center space-x-2 mb-2">
             <HardDrive className="h-4 w-4 text-purple-500" />
-            <span className="text-sm text-gray-600">Size-based</span>
+            <span className="text-sm text-muted-foreground">Size-based</span>
           </div>
-          <p className="text-2xl font-bold text-gray-900">{policies.filter(p => p.policy_type === 'size').length}</p>
+          <p className="text-2xl font-bold text-foreground">{policies.filter(p => p.policy_type === 'size').length}</p>
         </div>
       </div>
 
       {/* Policies List */}
-      <div className="bg-white rounded-lg border">
+      <div className="bg-card rounded-lg border">
         <div className="p-6 border-b">
-          <h2 className="text-xl font-semibold text-gray-900">Policy List</h2>
+          <h2 className="text-xl font-semibold text-foreground">Policy List</h2>
         </div>
         <div className="divide-y">
           {policies.map((policy) => (
@@ -195,15 +195,15 @@ const RotationPolicies = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center space-x-3">
-                    <h3 className="text-lg font-medium text-gray-900 truncate">
+                    <h3 className="text-lg font-medium text-foreground truncate">
                       {policy.name}
                     </h3>
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                       Priority {policy.priority}
                     </span>
                   </div>
-                  <p className="text-gray-600 mt-1">{getPolicyDescription(policy)}</p>
-                  <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
+                  <p className="text-muted-foreground mt-1">{getPolicyDescription(policy)}</p>
+                  <div className="flex items-center space-x-4 mt-2 text-sm text-muted-foreground">
                     {policy.protect_favorites && (
                       <span className="flex items-center space-x-1">
                         <Shield className="h-3 w-3" />
@@ -225,13 +225,13 @@ const RotationPolicies = () => {
               <div className="flex items-center space-x-2">
                 <button
                   onClick={() => handleEdit(policy)}
-                  className="p-2 text-gray-400 hover:text-blue-600 rounded"
+                  className="p-2 text-muted-foreground hover:text-blue-600 rounded"
                 >
                   <Edit2 className="h-4 w-4" />
                 </button>
                 <button
                   onClick={() => handleDelete(policy.id)}
-                  className="p-2 text-gray-400 hover:text-red-600 rounded"
+                  className="p-2 text-muted-foreground hover:text-red-600 rounded"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -240,8 +240,8 @@ const RotationPolicies = () => {
           ))}
           {policies.length === 0 && (
             <div className="p-12 text-center">
-              <RotateCcw className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">No rotation policies created yet</p>
+              <RotateCcw className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">No rotation policies created yet</p>
               <button
                 onClick={handleCreate}
                 className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -256,14 +256,14 @@ const RotationPolicies = () => {
       {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-lg mx-4">
+          <div className="bg-card rounded-lg p-6 w-full max-w-lg mx-4">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-gray-900">
+              <h3 className="text-lg font-semibold text-foreground">
                 {editingPolicy ? 'Edit Policy' : 'Create New Policy'}
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-muted-foreground hover:text-muted-foreground"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -272,27 +272,27 @@ const RotationPolicies = () => {
             <div className="space-y-4">
               {/* Policy Name */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Policy Name
                 </label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="e.g. 30-day Auto Cleanup Policy"
                 />
               </div>
 
               {/* Policy Type */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Policy Type
                 </label>
                 <select
                   value={formData.policy_type}
                   onChange={(e) => setFormData({ ...formData, policy_type: e.target.value as 'time' | 'count' | 'size' })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="time">Time-based (days)</option>
                   <option value="count">Count-based (file count)</option>
@@ -303,14 +303,14 @@ const RotationPolicies = () => {
               {/* Type-specific fields */}
               {formData.policy_type === 'time' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     Max Age (days)
                   </label>
                   <input
                     type="number"
                     value={formData.max_age_days || ''}
                     onChange={(e) => setFormData({ ...formData, max_age_days: parseInt(e.target.value) || undefined })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="30"
                   />
                 </div>
@@ -318,14 +318,14 @@ const RotationPolicies = () => {
 
               {formData.policy_type === 'count' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     Max File Count
                   </label>
                   <input
                     type="number"
                     value={formData.max_count || ''}
                     onChange={(e) => setFormData({ ...formData, max_count: parseInt(e.target.value) || undefined })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="100"
                   />
                 </div>
@@ -333,14 +333,14 @@ const RotationPolicies = () => {
 
               {formData.policy_type === 'size' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     Max Storage Size (GB)
                   </label>
                   <input
                     type="number"
                     value={formData.max_size_gb || ''}
                     onChange={(e) => setFormData({ ...formData, max_size_gb: parseInt(e.target.value) || undefined })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="500"
                   />
                 </div>
@@ -348,14 +348,14 @@ const RotationPolicies = () => {
 
               {/* Priority */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Priority (higher number = higher priority)
                 </label>
                 <input
                   type="number"
                   value={formData.priority}
                   onChange={(e) => setFormData({ ...formData, priority: parseInt(e.target.value) || 1 })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   min="1"
                 />
               </div>
@@ -364,8 +364,8 @@ const RotationPolicies = () => {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="text-sm font-medium text-gray-900">Protect Favorites</h4>
-                    <p className="text-sm text-gray-600">Never delete files marked as favorites</p>
+                    <h4 className="text-sm font-medium text-foreground">Protect Favorites</h4>
+                    <p className="text-sm text-muted-foreground">Never delete files marked as favorites</p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
@@ -374,14 +374,14 @@ const RotationPolicies = () => {
                       onChange={(e) => setFormData({ ...formData, protect_favorites: e.target.checked })}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    <div className="w-11 h-6 bg-muted peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-card after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                   </label>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="text-sm font-medium text-gray-900">Delete Empty Files</h4>
-                    <p className="text-sm text-gray-600">Automatically delete files with 0 bytes</p>
+                    <h4 className="text-sm font-medium text-foreground">Delete Empty Files</h4>
+                    <p className="text-sm text-muted-foreground">Automatically delete files with 0 bytes</p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
@@ -390,44 +390,44 @@ const RotationPolicies = () => {
                       onChange={(e) => setFormData({ ...formData, delete_empty_files: e.target.checked })}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    <div className="w-11 h-6 bg-muted peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-card after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                   </label>
                 </div>
               </div>
 
               {/* Optional fields */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Min File Size (MB) - Optional
                 </label>
                 <input
                   type="number"
                   value={formData.min_file_size_mb || ''}
                   onChange={(e) => setFormData({ ...formData, min_file_size_mb: parseInt(e.target.value) || undefined })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Don't delete files smaller than this"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-foreground mb-2">
                   Exclude Patterns - Optional
                 </label>
                 <input
                   type="text"
                   value={formData.exclude_patterns || ''}
                   onChange={(e) => setFormData({ ...formData, exclude_patterns: e.target.value || undefined })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="e.g. *.important, backup_*"
                 />
-                <p className="text-xs text-gray-500 mt-1">Comma-separated file patterns to exclude from policy</p>
+                <p className="text-xs text-muted-foreground mt-1">Comma-separated file patterns to exclude from policy</p>
               </div>
             </div>
 
             <div className="flex space-x-3 mt-6">
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                className="flex-1 px-4 py-2 border border-border text-foreground rounded-lg hover:bg-accent"
               >
                 Cancel
               </button>

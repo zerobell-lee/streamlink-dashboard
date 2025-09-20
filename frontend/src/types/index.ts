@@ -1,4 +1,4 @@
-// 사용자 관련 타입
+// User related types
 export interface User {
   id: number;
   username: string;
@@ -8,7 +8,7 @@ export interface User {
   updated_at: string;
 }
 
-// 플랫폼 설정 타입
+// Platform configuration types
 export interface PlatformConfig {
   platform: string;
   enabled: boolean;
@@ -19,14 +19,14 @@ export interface PlatformConfig {
   updated_at: string;
 }
 
-// 시스템 설정 타입
+// System configuration types
 export interface SystemConfig {
   key: string;
   value: string;
   description?: string;
 }
 
-// 회전 정책 타입
+// Rotation policy types
 export interface RotationPolicy {
   id: number;
   name: string;
@@ -44,7 +44,7 @@ export interface RotationPolicy {
   updated_at: string;
 }
 
-// 녹화 스케줄 타입
+// Recording schedule types
 export interface RecordingSchedule {
   id: number;
   platform: string;
@@ -71,7 +71,7 @@ export interface RecordingSchedule {
   updated_at: string;
 }
 
-// 녹화 타입
+// Recording types
 export interface Recording {
   id: number;
   schedule_id: number;
@@ -93,7 +93,7 @@ export interface Recording {
   updated_at: string;
 }
 
-// 녹화 작업 타입
+// Recording job types
 export interface RecordingJob {
   id: number;
   schedule_id: number;
@@ -106,7 +106,7 @@ export interface RecordingJob {
   updated_at: string;
 }
 
-// 스토리지 사용량 통계 타입
+// Storage usage statistics types
 export interface StorageUsage {
   total_recordings: number;
   total_size_bytes: number;
@@ -127,7 +127,7 @@ export interface ScheduleStatistics {
   size_gb: number;
 }
 
-// API 응답 타입
+// API response types
 export interface ApiResponse<T> {
   data: T;
   message?: string;
@@ -142,7 +142,7 @@ export interface PaginatedResponse<T> {
   pages: number;
 }
 
-// 폼 데이터 타입
+// Form data types
 export interface CreateScheduleForm {
   platform: string;
   streamer_id: string;
@@ -181,7 +181,7 @@ export interface CreateRotationPolicyForm {
   exclude_patterns?: string;
 }
 
-// 인증 타입
+// Authentication types
 export interface LoginCredentials {
   username: string;
   password: string;
@@ -199,7 +199,7 @@ export interface AuthResponse {
   user: User;
 }
 
-// 로깅 관련 타입
+// Logging related types
 export interface LoggingConfig {
   enable_file_logging: boolean;
   enable_json_logging: boolean;

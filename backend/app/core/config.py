@@ -12,12 +12,12 @@ load_dotenv()
 
 class Settings(BaseSettings):
     """Application settings"""
-    
+
     # Application
     APP_NAME: str = "Streamlink Dashboard"
     DEBUG: bool = True
     VERSION: str = os.getenv("VERSION", "0.5.0")
-    
+
     APP_DATA_DIR: str = os.getenv("APP_DATA_DIR", "/app/app_data")
     
     # Database

@@ -1,15 +1,16 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { 
-  Plus, 
-  Edit2, 
-  Trash2, 
-  Save, 
-  X, 
+import {
+  Plus,
+  Edit2,
+  Trash2,
+  Save,
+  X,
   Clock,
   Play,
   Pause,
+  Calendar,
   Settings,
   AlertTriangle,
   CheckCircle,
@@ -198,7 +199,7 @@ const RecordingSchedules = () => {
   const getStatusIcon = (enabled: boolean) => {
     return enabled 
       ? <CheckCircle className="h-4 w-4 text-green-500" />
-      : <XCircle className="h-4 w-4 text-gray-400" />;
+      : <XCircle className="h-4 w-4 text-muted-foreground" />;
   };
 
 
@@ -224,24 +225,27 @@ const RecordingSchedules = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Recording Schedules</h1>
-            <p className="text-gray-600 mt-2">Loading schedules...</p>
+            <h1 className="text-2xl font-bold text-foreground flex items-center">
+              <Calendar className="h-8 w-8 mr-3 text-purple-500" />
+              Recording Schedules
+            </h1>
+            <p className="text-muted-foreground mt-2">Loading schedules...</p>
           </div>
-          <div className="w-32 h-10 bg-gray-200 rounded-lg animate-pulse"></div>
+          <div className="w-32 h-10 bg-muted rounded-lg animate-pulse"></div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="bg-white rounded-lg border p-4 animate-pulse">
-              <div className="h-4 bg-gray-200 rounded w-20 mb-2"></div>
-              <div className="h-8 bg-gray-200 rounded w-16"></div>
+            <div key={i} className="bg-card rounded-lg border p-4 animate-pulse">
+              <div className="h-4 bg-muted rounded w-20 mb-2"></div>
+              <div className="h-8 bg-muted rounded w-16"></div>
             </div>
           ))}
         </div>
-        <div className="bg-white rounded-lg border p-6">
-          <div className="h-6 bg-gray-200 rounded w-32 mb-4"></div>
+        <div className="bg-card rounded-lg border p-6">
+          <div className="h-6 bg-muted rounded w-32 mb-4"></div>
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-16 bg-gray-100 rounded animate-pulse"></div>
+              <div key={i} className="h-16 bg-accent rounded animate-pulse"></div>
             ))}
           </div>
         </div>
@@ -253,12 +257,15 @@ const RecordingSchedules = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Recording Schedules</h1>
-          <p className="text-gray-600 mt-2">Manage automatic recording schedules for your favorite streamers</p>
+          <h1 className="text-2xl font-bold text-foreground flex items-center">
+            <Calendar className="h-8 w-8 mr-3 text-purple-500" />
+            Recording Schedules
+          </h1>
+          <p className="text-muted-foreground mt-2">Manage automatic recording schedules for your favorite streamers</p>
         </div>
         <button
           onClick={handleCreate}
-          className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          className="flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90"
         >
           <Plus className="h-4 w-4" />
           <span>Add Schedule</span>
@@ -266,50 +273,50 @@ const RecordingSchedules = () => {
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-md p-4">
+        <div className="bg-destructive/10 border border-destructive/20 rounded-md p-4">
           <div className="flex items-center">
             <AlertTriangle className="h-5 w-5 text-red-400 mr-2" />
-            <p className="text-sm text-red-600">{error}</p>
+            <p className="text-sm text-destructive">{error}</p>
           </div>
         </div>
       )}
 
       {/* Schedule Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg border p-4">
+        <div className="bg-card rounded-lg border p-4">
           <div className="flex items-center space-x-2 mb-2">
             <Clock className="h-4 w-4 text-blue-500" />
-            <span className="text-sm text-gray-600">Total Schedules</span>
+            <span className="text-sm text-muted-foreground">Total Schedules</span>
           </div>
-          <p className="text-2xl font-bold text-gray-900">{schedules.length}</p>
+          <p className="text-2xl font-bold text-foreground">{schedules.length}</p>
         </div>
-        <div className="bg-white rounded-lg border p-4">
+        <div className="bg-card rounded-lg border p-4">
           <div className="flex items-center space-x-2 mb-2">
             <Play className="h-4 w-4 text-green-500" />
-            <span className="text-sm text-gray-600">Active</span>
+            <span className="text-sm text-muted-foreground">Active</span>
           </div>
-          <p className="text-2xl font-bold text-gray-900">{schedules.filter(s => s.enabled).length}</p>
+          <p className="text-2xl font-bold text-foreground">{schedules.filter(s => s.enabled).length}</p>
         </div>
-        <div className="bg-white rounded-lg border p-4">
+        <div className="bg-card rounded-lg border p-4">
           <div className="flex items-center space-x-2 mb-2">
-            <Pause className="h-4 w-4 text-gray-500" />
-            <span className="text-sm text-gray-600">Disabled</span>
+            <Pause className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">Disabled</span>
           </div>
-          <p className="text-2xl font-bold text-gray-900">{schedules.filter(s => !s.enabled).length}</p>
+          <p className="text-2xl font-bold text-foreground">{schedules.filter(s => !s.enabled).length}</p>
         </div>
-        <div className="bg-white rounded-lg border p-4">
+        <div className="bg-card rounded-lg border p-4">
           <div className="flex items-center space-x-2 mb-2">
             <RotateCcw className="h-4 w-4 text-purple-500" />
-            <span className="text-sm text-gray-600">With Rotation</span>
+            <span className="text-sm text-muted-foreground">With Rotation</span>
           </div>
-          <p className="text-2xl font-bold text-gray-900">{schedules.filter(s => s.rotation_enabled).length}</p>
+          <p className="text-2xl font-bold text-foreground">{schedules.filter(s => s.rotation_enabled).length}</p>
         </div>
       </div>
 
       {/* Schedules List */}
-      <div className="bg-white rounded-lg border">
+      <div className="bg-card rounded-lg border">
         <div className="p-6 border-b">
-          <h2 className="text-xl font-semibold text-gray-900">Schedule List</h2>
+          <h2 className="text-xl font-semibold text-foreground">Schedule List</h2>
         </div>
         <div className="divide-y">
           {schedules.map((schedule) => (
@@ -320,7 +327,7 @@ const RecordingSchedules = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center space-x-3">
-                    <h3 className="text-lg font-medium text-gray-900 truncate">
+                    <h3 className="text-lg font-medium text-foreground truncate">
                       {schedule.streamer_name}
                     </h3>
                     {getStatusIcon(schedule.enabled)}
@@ -331,10 +338,10 @@ const RecordingSchedules = () => {
                       {schedule.quality}
                     </span>
                   </div>
-                  <p className="text-gray-600 mt-1">
+                  <p className="text-muted-foreground mt-1">
                     Streamer ID: {schedule.streamer_id}
                   </p>
-                  <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
+                  <div className="flex items-center space-x-4 mt-2 text-sm text-muted-foreground">
                     <span className="flex items-center space-x-1">
                       <RotateCcw className="h-3 w-3" />
                       <span>{formatRotationInfo(schedule)}</span>
@@ -353,17 +360,17 @@ const RecordingSchedules = () => {
                     onChange={() => toggleEnabled(schedule.id)}
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  <div className="w-11 h-6 bg-muted peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-card after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                 </label>
                 <button
                   onClick={() => handleEdit(schedule)}
-                  className="p-2 text-gray-400 hover:text-blue-600 rounded"
+                  className="p-2 text-muted-foreground hover:text-primary rounded"
                 >
                   <Edit2 className="h-4 w-4" />
                 </button>
                 <button
                   onClick={() => handleDelete(schedule.id)}
-                  className="p-2 text-gray-400 hover:text-red-600 rounded"
+                  className="p-2 text-muted-foreground hover:text-destructive rounded"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -372,9 +379,9 @@ const RecordingSchedules = () => {
           ))}
           {schedules.length === 0 && (
             <div className="p-12 text-center">
-              <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No schedules yet</h3>
-              <p className="text-gray-500">Create your first recording schedule to get started</p>
+              <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-foreground mb-2">No schedules yet</h3>
+              <p className="text-muted-foreground">Create your first recording schedule to get started</p>
             </div>
           )}
         </div>
@@ -383,14 +390,14 @@ const RecordingSchedules = () => {
       {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-card rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b">
-              <h2 className="text-xl font-semibold text-gray-900">
+              <h2 className="text-xl font-semibold text-foreground">
                 {editingSchedule ? 'Edit Schedule' : 'Add Schedule'}
               </h2>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-muted-foreground hover:text-muted-foreground"
               >
                 <X className="h-6 w-6" />
               </button>
@@ -399,30 +406,30 @@ const RecordingSchedules = () => {
             <div className="p-6 space-y-6">
               {/* Basic Settings */}
               <div className="space-y-4">
-                <h3 className="text-lg font-medium text-gray-900">Basic Settings</h3>
+                <h3 className="text-lg font-medium text-foreground">Basic Settings</h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-foreground mb-2">
                       Platform *
                     </label>
                     <select
                       value={formData.platform}
                       onChange={(e) => setFormData({...formData, platform: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                      className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring text-foreground bg-background"
                     >
-                      <option value="" className="text-gray-500 bg-white">Select platform</option>
-                      <option value="twitch" className="text-gray-900 bg-white">Twitch</option>
-                      <option value="youtube" className="text-gray-900 bg-white">YouTube</option>
-                      <option value="sooplive" className="text-gray-900 bg-white">SoopLive</option>
-                      <option value="chzzk" className="text-gray-900 bg-white">Chzzk (치지직)</option>
+                      <option value="" className="text-muted-foreground bg-card">Select platform</option>
+                      <option value="twitch" className="text-foreground bg-card">Twitch</option>
+                      <option value="youtube" className="text-foreground bg-card">YouTube</option>
+                      <option value="sooplive" className="text-foreground bg-card">SoopLive</option>
+                      <option value="chzzk" className="text-foreground bg-card">Chzzk</option>
                     </select>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-foreground mb-2">
                       Quality
-                      <span className="text-xs font-normal text-gray-500 ml-2">
+                      <span className="text-xs font-normal text-muted-foreground ml-2">
                         (Comma-separated with fallback support)
                       </span>
                     </label>
@@ -430,69 +437,69 @@ const RecordingSchedules = () => {
                       type="text"
                       value={formData.quality}
                       onChange={(e) => setFormData({...formData, quality: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white placeholder-gray-400"
+                      className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring text-foreground bg-background placeholder:text-muted-foreground"
                       placeholder="1440p,1080p60,1080p,720p,540p,360p,best,worst"
                     />
-                    <p className="text-xs text-gray-600 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       Streamlink will try qualities in order. Examples: "best", "720p", "1440p,1080p,best"
                     </p>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     Streamer ID *
                   </label>
                   <input
                     type="text"
                     value={formData.streamer_id}
                     onChange={(e) => setFormData({...formData, streamer_id: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white placeholder-gray-400"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-foreground bg-card placeholder-gray-400"
                     placeholder="Enter streamer ID"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     Streamer Name
                   </label>
                   <input
                     type="text"
                     value={formData.streamer_name}
                     onChange={(e) => setFormData({...formData, streamer_name: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white placeholder-gray-400"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-foreground bg-card placeholder-gray-400"
                     placeholder="Display name (optional, defaults to streamer ID)"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-foreground mb-2">
                       Output Format
-                      <span className="text-xs font-normal text-gray-500 ml-2">
+                      <span className="text-xs font-normal text-muted-foreground ml-2">
                         (Optional, uses platform default)
                       </span>
                     </label>
                     <select
                       value={formData.output_format || ''}
                       onChange={(e) => setFormData({...formData, output_format: e.target.value || undefined})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                      className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring text-foreground bg-background"
                     >
-                      <option value="" className="text-gray-500 bg-white">Use platform default</option>
-                      <option value="mp4" className="text-gray-900 bg-white">MP4 (recommended for most)</option>
-                      <option value="ts" className="text-gray-900 bg-white">TS (Transport Stream)</option>
-                      <option value="mkv" className="text-gray-900 bg-white">MKV</option>
-                      <option value="flv" className="text-gray-900 bg-white">FLV</option>
+                      <option value="" className="text-muted-foreground bg-card">Use platform default</option>
+                      <option value="mp4" className="text-foreground bg-card">MP4 (recommended for most)</option>
+                      <option value="ts" className="text-foreground bg-card">TS (Transport Stream)</option>
+                      <option value="mkv" className="text-foreground bg-card">MKV</option>
+                      <option value="flv" className="text-foreground bg-card">FLV</option>
                     </select>
-                    <p className="text-xs text-gray-600 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       Twitch/CHZZK default: MP4, SoopLive default: TS
                     </p>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-foreground mb-2">
                       Filename Template
-                      <span className="text-xs font-normal text-gray-500 ml-2">
+                      <span className="text-xs font-normal text-muted-foreground ml-2">
                         (Optional, uses platform default)
                       </span>
                     </label>
@@ -500,23 +507,23 @@ const RecordingSchedules = () => {
                       type="text"
                       value={formData.filename_template || ''}
                       onChange={(e) => setFormData({...formData, filename_template: e.target.value || undefined})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white placeholder-gray-400"
+                      className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring text-foreground bg-background placeholder:text-muted-foreground"
                       placeholder="{streamer_id}_{yyyyMMdd}_{HHmmss}"
                     />
-                    <p className="text-xs text-gray-600 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       Variables: {"{streamer_id}, {streamer_name}, {platform}, {title}, {quality}, {yyyy}, {MM}, {dd}, {HH}, {mm}, {ss}"}
                     </p>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     Custom Arguments
                   </label>
                   <textarea
                     value={formData.custom_arguments || ''}
                     onChange={(e) => setFormData({...formData, custom_arguments: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white placeholder-gray-400"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-foreground bg-card placeholder-gray-400"
                     placeholder="Additional streamlink arguments"
                     rows={2}
                   />
@@ -526,7 +533,7 @@ const RecordingSchedules = () => {
               {/* Rotation Settings */}
               <div className="space-y-4 border-t pt-6">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-medium text-gray-900">File Rotation Settings</h3>
+                  <h3 className="text-lg font-medium text-foreground">File Rotation Settings</h3>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
@@ -534,37 +541,37 @@ const RecordingSchedules = () => {
                       onChange={(e) => setFormData({...formData, rotation_enabled: e.target.checked})}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    <div className="w-11 h-6 bg-muted peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-card after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                   </label>
                 </div>
 
                 {formData.rotation_enabled && (
-                  <div className="space-y-4 bg-gray-50 p-4 rounded-lg">
+                  <div className="space-y-4 bg-accent p-4 rounded-lg">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-foreground mb-2">
                         Rotation Type
                       </label>
                       <select
                         value={formData.rotation_type}
                         onChange={(e) => setFormData({...formData, rotation_type: e.target.value as 'time' | 'count' | 'size'})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                        className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring text-foreground bg-background"
                       >
-                        <option value="time" className="text-gray-900 bg-white">Time-based (days)</option>
-                        <option value="count" className="text-gray-900 bg-white">Count-based (files)</option>
-                        <option value="size" className="text-gray-900 bg-white">Size-based (GB)</option>
+                        <option value="time" className="text-foreground bg-card">Time-based (days)</option>
+                        <option value="count" className="text-foreground bg-card">Count-based (files)</option>
+                        <option value="size" className="text-foreground bg-card">Size-based (GB)</option>
                       </select>
                     </div>
 
                     {formData.rotation_type === 'time' && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-foreground mb-2">
                           Keep files for (days)
                         </label>
                         <input
                           type="number"
                           value={formData.max_age_days || ''}
                           onChange={(e) => setFormData({...formData, max_age_days: e.target.value === '' ? 0 : parseInt(e.target.value) || 0})}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                          className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring text-foreground bg-background"
                           min="1"
                         />
                       </div>
@@ -572,14 +579,14 @@ const RecordingSchedules = () => {
 
                     {formData.rotation_type === 'count' && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-foreground mb-2">
                           Maximum number of files
                         </label>
                         <input
                           type="number"
                           value={formData.max_count || ''}
                           onChange={(e) => setFormData({...formData, max_count: e.target.value === '' ? 0 : parseInt(e.target.value) || 0})}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                          className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring text-foreground bg-background"
                           min="1"
                         />
                       </div>
@@ -587,14 +594,14 @@ const RecordingSchedules = () => {
 
                     {formData.rotation_type === 'size' && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-foreground mb-2">
                           Maximum total size (GB)
                         </label>
                         <input
                           type="number"
                           value={formData.max_size_gb || ''}
                           onChange={(e) => setFormData({...formData, max_size_gb: e.target.value === '' ? 0 : parseInt(e.target.value) || 0})}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
+                          className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring text-foreground bg-background"
                           min="1"
                         />
                       </div>
@@ -606,9 +613,9 @@ const RecordingSchedules = () => {
                           type="checkbox"
                           checked={formData.protect_favorites}
                           onChange={(e) => setFormData({...formData, protect_favorites: e.target.checked})}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          className="rounded border-input text-primary focus:ring-ring"
                         />
-                        <span className="ml-2 text-sm text-gray-700">Protect favorite recordings</span>
+                        <span className="ml-2 text-sm text-foreground">Protect favorite recordings</span>
                       </label>
                       
                       <label className="flex items-center">
@@ -616,9 +623,9 @@ const RecordingSchedules = () => {
                           type="checkbox"
                           checked={formData.delete_empty_files}
                           onChange={(e) => setFormData({...formData, delete_empty_files: e.target.checked})}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          className="rounded border-input text-primary focus:ring-ring"
                         />
-                        <span className="ml-2 text-sm text-gray-700">Delete empty files</span>
+                        <span className="ml-2 text-sm text-foreground">Delete empty files</span>
                       </label>
                     </div>
                   </div>
@@ -626,16 +633,16 @@ const RecordingSchedules = () => {
               </div>
             </div>
 
-            <div className="flex items-center justify-end space-x-3 p-6 border-t bg-gray-50">
+            <div className="flex items-center justify-end space-x-3 p-6 border-t bg-accent">
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                className="px-4 py-2 text-sm font-medium text-foreground bg-background border border-input rounded-md hover:bg-accent"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
-                className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-primary-foreground bg-primary rounded-md hover:bg-primary/90"
               >
                 <Save className="h-4 w-4" />
                 <span>{editingSchedule ? 'Update' : 'Create'} Schedule</span>
@@ -649,7 +656,7 @@ const RecordingSchedules = () => {
       {toast.show && (
         <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-right duration-300">
           <div className={`
-            max-w-md w-full bg-white rounded-lg shadow-lg border-l-4 p-4
+            max-w-md w-full bg-card rounded-lg shadow-lg border-l-4 p-4
             ${toast.type === 'success' ? 'border-green-500' : 
               toast.type === 'error' ? 'border-red-500' : 'border-yellow-500'}
           `}>
@@ -676,7 +683,7 @@ const RecordingSchedules = () => {
               <div className="ml-4 flex-shrink-0">
                 <button
                   onClick={() => setToast({ show: false, message: '', type: 'success' })}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-muted-foreground hover:text-muted-foreground"
                 >
                   <X className="h-4 w-4" />
                 </button>
