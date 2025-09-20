@@ -29,7 +29,6 @@ async def get_schedules(
     """
     result = await db.execute(
         select(RecordingSchedule)
-        .options(selectinload(RecordingSchedule.rotation_policy))
         .order_by(RecordingSchedule.created_at.desc())
     )
     schedules = result.scalars().all()
@@ -70,8 +69,10 @@ async def create_schedule(
     
     # Add to scheduler service if it's enabled
     if schedule.enabled:
-        from app.main import scheduler_service
-        if scheduler_service:
+        from app.core.service_container import get_service_container
+        service_container = get_service_container()
+        scheduler_service = service_container.get_scheduler_service()
+        if scheduler_service and scheduler_service.is_running():
             await scheduler_service._start_monitoring(schedule)
     
     
@@ -89,7 +90,6 @@ async def get_schedule(
     """
     result = await db.execute(
         select(RecordingSchedule)
-        .options(selectinload(RecordingSchedule.rotation_policy))
         .where(RecordingSchedule.id == schedule_id)
     )
     schedule = result.scalar_one_or_none()
@@ -132,8 +132,10 @@ async def update_schedule(
     await db.refresh(schedule)
     
     # Update scheduler service
-    from app.main import scheduler_service
-    if scheduler_service:
+    from app.core.service_container import get_service_container
+    service_container = get_service_container()
+    scheduler_service = service_container.get_scheduler_service()
+    if scheduler_service and scheduler_service.is_running():
         await scheduler_service._start_monitoring(schedule)
     
     
@@ -161,8 +163,10 @@ async def delete_schedule(
         )
     
     # Remove from scheduler service
-    from app.main import scheduler_service
-    if scheduler_service:
+    from app.core.service_container import get_service_container
+    service_container = get_service_container()
+    scheduler_service = service_container.get_scheduler_service()
+    if scheduler_service and scheduler_service.is_running():
         await scheduler_service.stop_monitoring(schedule.id)
     
     await db.delete(schedule)
@@ -196,8 +200,10 @@ async def toggle_schedule(
     await db.refresh(schedule)
     
     # Update scheduler service
-    from app.main import scheduler_service
-    if scheduler_service:
+    from app.core.service_container import get_service_container
+    service_container = get_service_container()
+    scheduler_service = service_container.get_scheduler_service()
+    if scheduler_service and scheduler_service.is_running():
         if schedule.enabled:
             await scheduler_service._start_monitoring(schedule)
         else:
