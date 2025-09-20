@@ -406,7 +406,7 @@ class StreamlinkService:
                     
                     # Also include last few stdout lines for context
                     if stdout_lines:
-                        stdout_text = '\n'.join(stdout_lines[-5:])  # Last 5 lines  
+                        stdout_text = '\n'.join(stdout_lines[-3:])  # Last 3 lines
                         error_msg += f"\n--- Last Stdout Output ---\n{stdout_text}"
                     
                     recording.error_message = error_msg
