@@ -8,7 +8,7 @@ import {
   PlatformUserConfigCreate, 
   PlatformUserConfigUpdate 
 } from '@/types/platform';
-import { Settings, RefreshCw, Eye, EyeOff, AlertTriangle, CheckCircle, Info, Trash2 } from 'lucide-react';
+import { Monitor, RefreshCw, Eye, EyeOff, AlertTriangle, CheckCircle, Info, Trash2 } from 'lucide-react';
 import { getPlatformIcon } from '@/lib/platformIcons';
 
 export default function PlatformManagement() {
@@ -69,7 +69,7 @@ export default function PlatformManagement() {
 
   const handleFieldUpdate = (platform: PlatformInfo, fieldKey: string, value: string | boolean, section: 'credentials' | 'settings' = 'credentials') => {
     const currentCredentials = platform.user_config?.user_credentials || {};
-    const currentSettings = platform.user_config?.custom_settings || {};
+    const currentMonitor = platform.user_config?.custom_settings || {};
     
     // Process value based on type
     const processedValue = typeof value === 'string' ? (value.trim() || undefined) : value;
@@ -81,12 +81,12 @@ export default function PlatformManagement() {
             ...currentCredentials,
             [fieldKey]: processedValue,
           },
-          custom_settings: currentSettings,
+          custom_settings: currentMonitor,
         }
       : {
           user_credentials: currentCredentials,
           custom_settings: {
-            ...currentSettings,
+            ...currentMonitor,
             [fieldKey]: processedValue,
           },
         };
@@ -145,25 +145,25 @@ export default function PlatformManagement() {
       return (
         <div key={fieldName} className="flex items-center justify-between space-x-3">
           <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-900">
+            <label className="block text-sm font-medium text-foreground">
               {title}
               {isRequired && <span className="text-red-500 ml-1">*</span>}
             </label>
             {description && (
-              <p className="text-xs text-gray-600 mt-1">{description}</p>
+              <p className="text-xs text-muted-foreground mt-1">{description}</p>
             )}
           </div>
           <button
             type="button"
             onClick={() => handleFieldUpdate(platform, fieldName, !currentValue, section)}
             className={`${
-              currentValue ? 'bg-blue-600' : 'bg-gray-200'
-            } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2`}
+              currentValue ? 'bg-primary' : 'bg-muted'
+            } relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2`}
           >
             <span
               className={`${
                 currentValue ? 'translate-x-6' : 'translate-x-1'
-              } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+              } inline-block h-4 w-4 transform rounded-full bg-card transition-transform`}
             />
           </button>
         </div>
@@ -173,7 +173,7 @@ export default function PlatformManagement() {
     // Handle string/number type fields
     return (
       <div key={fieldName} className="space-y-2">
-        <label className="block text-sm font-medium text-gray-900">
+        <label className="block text-sm font-medium text-foreground">
           {title}
           {isRequired && <span className="text-red-500 ml-1">*</span>}
         </label>
@@ -183,7 +183,7 @@ export default function PlatformManagement() {
             type={isPassword && !isVisible ? 'password' : fieldType === 'integer' || fieldType === 'number' ? 'number' : 'text'}
             value={currentValue}
             onChange={(e) => handleFieldUpdate(platform, fieldName, e.target.value, section)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10 text-gray-900 bg-white"
+            className="w-full px-3 py-2 border border-input rounded-lg focus:outline-none focus:ring-2 focus:ring-ring pr-10 text-foreground bg-background"
             placeholder={defaultValue ? `Default: ${defaultValue}` : `Enter ${title.toLowerCase()}`}
           />
           
@@ -191,23 +191,23 @@ export default function PlatformManagement() {
             <button
               type="button"
               onClick={() => togglePasswordVisibility(platform.definition.name, fieldName)}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 hover:bg-gray-100 rounded"
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 hover:bg-accent hover:text-accent-foreground rounded"
             >
               {isVisible ? (
-                <EyeOff className="w-4 h-4 text-gray-500" />
+                <EyeOff className="w-4 h-4 text-muted-foreground" />
               ) : (
-                <Eye className="w-4 h-4 text-gray-500" />
+                <Eye className="w-4 h-4 text-muted-foreground" />
               )}
             </button>
           )}
         </div>
 
         {description && (
-          <p className="text-xs text-gray-600">{description}</p>
+          <p className="text-xs text-muted-foreground">{description}</p>
         )}
 
         {isRequired && !currentValue && (
-          <div className="flex items-center space-x-1 text-orange-600">
+          <div className="flex items-center space-x-1 text-orange-600 dark:text-orange-400">
             <AlertTriangle className="w-3 h-3" />
             <span className="text-xs">This field is required for proper functionality</span>
           </div>
@@ -236,8 +236,8 @@ export default function PlatformManagement() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <RefreshCw className="w-6 h-6 animate-spin text-gray-700" />
-        <span className="ml-2 text-gray-900">Loading platforms...</span>
+        <RefreshCw className="w-6 h-6 animate-spin text-foreground" />
+        <span className="ml-2 text-foreground">Loading platforms...</span>
       </div>
     );
   }
@@ -245,22 +245,24 @@ export default function PlatformManagement() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <Settings className="w-6 h-6 text-gray-700" />
-          <h2 className="text-xl font-semibold text-gray-900">Platform Management</h2>
+        <div>
+          <h1 className="text-2xl font-bold text-foreground flex items-center">
+            <Monitor className="h-8 w-8 mr-3 text-green-500" />
+            Platform Management
+          </h1>
         </div>
         
       </div>
 
       <div className="grid gap-6">
         {platforms.map((platform) => (
-          <div key={platform.definition.name} className="bg-white border border-gray-200 rounded-lg p-6">
+          <div key={platform.definition.name} className="bg-card border border-border rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-3">
                 {getPlatformIcon(platform.definition.name)}
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900">{platform.definition.display_name}</h3>
-                  <p className="text-sm text-gray-600">{platform.definition.description}</p>
+                  <h3 className="text-lg font-medium text-foreground">{platform.definition.display_name}</h3>
+                  <p className="text-sm text-muted-foreground">{platform.definition.description}</p>
                 </div>
                 {platform.is_configured && (
                   <CheckCircle className="w-5 h-5 text-green-600" />
@@ -269,7 +271,7 @@ export default function PlatformManagement() {
               
               <div className="flex items-center space-x-2">
                 {saving === platform.definition.name && (
-                  <div className="flex items-center space-x-2 text-blue-600">
+                  <div className="flex items-center space-x-2 text-primary">
                     <RefreshCw className="w-4 h-4 animate-spin" />
                     <span className="text-sm">Saving...</span>
                   </div>
@@ -278,7 +280,7 @@ export default function PlatformManagement() {
                 {platform.is_configured && (
                   <button
                     onClick={() => handleDeleteConfig(platform.definition.name)}
-                    className="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded"
+                    className="p-1 text-destructive hover:text-destructive/80 hover:bg-destructive/10 rounded"
                     title="Delete configuration"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -288,20 +290,20 @@ export default function PlatformManagement() {
             </div>
 
             {/* Platform Requirements Info */}
-            <div className="mb-4 p-3 bg-gray-50 rounded-lg text-sm">
+            <div className="mb-4 p-3 bg-accent rounded-lg text-sm">
               <div className="flex items-start space-x-2">
-                <Info className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
                 <div className="flex-1 space-y-1">
-                  <p className="text-gray-900"><strong>Features:</strong> {[
+                  <p className="text-foreground"><strong>Features:</strong> {[
                     platform.definition.requires_auth && "Authentication Required",
                     platform.definition.supports_chat && "Chat Recording",
                     platform.definition.supports_vod && "VOD Support"
                   ].filter(Boolean).join(", ") || "Basic streaming"}</p>
                   
-                  <p className="text-gray-900"><strong>Qualities:</strong> {platform.definition.supported_qualities.join(", ")}</p>
+                  <p className="text-foreground"><strong>Qualities:</strong> {platform.definition.supported_qualities.join(", ")}</p>
                   
                   {platform.definition.help_text && (
-                    <p className="text-gray-700">{platform.definition.help_text}</p>
+                    <p className="text-foreground">{platform.definition.help_text}</p>
                   )}
                 </div>
               </div>
@@ -319,16 +321,16 @@ export default function PlatformManagement() {
                   
                   {/* Setup Instructions */}
                   {platform.definition.setup_instructions && !platform.is_configured && (
-                    <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                      <h4 className="font-medium text-blue-900 mb-2">Setup Instructions</h4>
-                      <div className="text-sm text-blue-800 whitespace-pre-line">
+                    <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
+                      <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">Setup Instructions</h4>
+                      <div className="text-sm text-blue-800 dark:text-blue-200 whitespace-pre-line">
                         {platform.definition.setup_instructions}
                       </div>
                     </div>
                   )}
                 </div>
               ) : (
-                <div className="text-center py-6 text-gray-500">
+                <div className="text-center py-6 text-muted-foreground">
                   <Info className="w-8 h-8 mx-auto mb-2 opacity-50" />
                   <p>This platform doesn't require any configuration.</p>
                 </div>
@@ -336,7 +338,7 @@ export default function PlatformManagement() {
             </div>
 
             {platform.user_config && (
-              <div className="mt-4 pt-4 border-t border-gray-200 text-xs text-gray-500">
+              <div className="mt-4 pt-4 border-t border-border text-xs text-muted-foreground">
                 <p>Last updated: {new Date(platform.user_config.updated_at).toLocaleString()}</p>
               </div>
             )}
@@ -345,8 +347,8 @@ export default function PlatformManagement() {
       </div>
 
       {platforms.length === 0 && (
-        <div className="text-center py-8 text-gray-700">
-          <Settings className="w-12 h-12 mx-auto mb-4 opacity-50 text-gray-600" />
+        <div className="text-center py-8 text-foreground">
+          <Monitor className="w-12 h-12 mx-auto mb-4 opacity-50 text-muted-foreground" />
           <p>No platforms available. Please check your system configuration.</p>
         </div>
       )}

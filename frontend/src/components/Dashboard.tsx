@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from 'react';
-import { BarChart3, Activity, Clock, FolderOpen, Radio, AlertCircle, ArrowRight } from 'lucide-react';
+import { BarChart3, Activity, Clock, FolderOpen, Radio, AlertCircle, ArrowRight, LayoutDashboard } from 'lucide-react';
 import { api } from '@/lib/api';
 import { formatRelativeTime, getServerTime, getServerTimeSync } from '@/lib/utils';
 import { getPlatformIcon } from '@/lib/platformIcons';
@@ -216,23 +216,26 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <div className="flex items-center space-x-2 text-sm text-gray-500">
-            <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></div>
+          <h1 className="text-2xl font-bold text-foreground flex items-center">
+          <LayoutDashboard className="h-8 w-8 mr-3 text-blue-500" />
+          Dashboard
+        </h1>
+          <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+            <div className="w-2 h-2 bg-muted rounded-full animate-pulse"></div>
             <span>Loading...</span>
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="bg-white rounded-lg border p-6 animate-pulse">
+            <div key={i} className="bg-card rounded-lg border p-6 animate-pulse">
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="h-4 bg-gray-200 rounded w-20 mb-2"></div>
-                  <div className="h-8 bg-gray-200 rounded w-16"></div>
+                  <div className="h-4 bg-muted rounded w-20 mb-2"></div>
+                  <div className="h-8 bg-muted rounded w-16"></div>
                 </div>
-                <div className="h-8 w-8 bg-gray-200 rounded"></div>
+                <div className="h-8 w-8 bg-muted rounded"></div>
               </div>
             </div>
           ))}
@@ -242,9 +245,12 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+        <h1 className="text-2xl font-bold text-foreground flex items-center">
+          <LayoutDashboard className="h-8 w-8 mr-3 text-blue-500" />
+          Dashboard
+        </h1>
         <div className="flex items-center space-x-2 text-sm text-green-600">
           <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
           <span>System Running</span>
@@ -262,56 +268,56 @@ const Dashboard = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg border p-6">
+        <div className="bg-card rounded-lg border p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Total Schedules</p>
-              <p className="text-2xl font-bold text-gray-900">{totalSchedules}</p>
+              <p className="text-sm text-muted-foreground">Total Schedules</p>
+              <p className="text-2xl font-bold text-foreground">{totalSchedules}</p>
             </div>
             <BarChart3 className="h-8 w-8 text-blue-500" />
           </div>
-          <p className="text-xs text-gray-500 mt-2">Recording schedules</p>
+          <p className="text-xs text-muted-foreground mt-2">Recording schedules</p>
         </div>
 
-        <div className="bg-white rounded-lg border p-6">
+        <div className="bg-card rounded-lg border p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Enabled Schedules</p>
-              <p className="text-2xl font-bold text-gray-900">{enabledSchedules}</p>
+              <p className="text-sm text-muted-foreground">Enabled Schedules</p>
+              <p className="text-2xl font-bold text-foreground">{enabledSchedules}</p>
             </div>
             <Activity className="h-8 w-8 text-green-500" />
           </div>
-          <p className="text-xs text-gray-500 mt-2">Currently active</p>
+          <p className="text-xs text-muted-foreground mt-2">Currently active</p>
         </div>
 
-        <div className="bg-white rounded-lg border p-6">
+        <div className="bg-card rounded-lg border p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Active Recordings</p>
-              <p className="text-2xl font-bold text-gray-900">{activeRecordings.length}</p>
+              <p className="text-sm text-muted-foreground">Active Recordings</p>
+              <p className="text-2xl font-bold text-foreground">{activeRecordings.length}</p>
             </div>
             <Radio className="h-8 w-8 text-red-500" />
           </div>
-          <p className="text-xs text-gray-500 mt-2">Currently recording</p>
+          <p className="text-xs text-muted-foreground mt-2">Currently recording</p>
         </div>
 
-        <div className="bg-white rounded-lg border p-6">
+        <div className="bg-card rounded-lg border p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Total Files</p>
-              <p className="text-2xl font-bold text-gray-900">{data.totalFilesCount}</p>
+              <p className="text-sm text-muted-foreground">Total Files</p>
+              <p className="text-2xl font-bold text-foreground">{data.totalFilesCount}</p>
             </div>
             <FolderOpen className="h-8 w-8 text-purple-500" />
           </div>
-          <p className="text-xs text-gray-500 mt-2">Recorded files</p>
+          <p className="text-xs text-muted-foreground mt-2">Recorded files</p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Active Recordings */}
-        <div className="bg-white rounded-lg border">
+        <div className="bg-card rounded-lg border">
           <div className="p-6 border-b">
-            <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+            <h2 className="text-lg font-semibold text-foreground flex items-center">
               <Radio className="h-5 w-5 mr-2 text-red-500" />
               Active Recordings ({activeRecordings.length})
             </h2>
@@ -324,18 +330,18 @@ const Dashboard = () => {
                     <div className="flex items-center space-x-3">
                       <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
                       <div>
-                        <p className="font-medium text-gray-900">{recording.streamer_name || recording.streamer_id}</p>
+                        <p className="font-medium text-foreground">{recording.streamer_name || recording.streamer_id}</p>
                         <div className="flex items-center space-x-1">
                           {getPlatformIcon(recording.platform, 'sm')}
-                          <span className="text-sm text-gray-600">{recording.platform}</span>
+                          <span className="text-sm text-muted-foreground">{recording.platform}</span>
                         </div>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-medium text-gray-900">
+                      <p className="text-sm font-medium text-foreground">
                         <LiveDuration startTime={recording.start_time} />
                       </p>
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-muted-foreground">
                         {recording.file_size ? formatFileSize(recording.file_size) : '...'}
                       </p>
                     </div>
@@ -343,15 +349,15 @@ const Dashboard = () => {
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500 text-center py-8">No active recordings</p>
+              <p className="text-muted-foreground text-center py-8">No active recordings</p>
             )}
           </div>
         </div>
 
         {/* Scheduled Recordings */}
-        <div className="bg-white rounded-lg border">
+        <div className="bg-card rounded-lg border">
           <div className="p-6 border-b">
-            <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+            <h2 className="text-lg font-semibold text-foreground flex items-center">
               <Clock className="h-5 w-5 mr-2 text-blue-500" />
               Recording Schedules ({enabledSchedules}/{totalSchedules})
             </h2>
@@ -363,20 +369,20 @@ const Dashboard = () => {
                   <div key={schedule.id} className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex items-center space-x-3">
                       <div className={`w-3 h-3 rounded-full ${
-                        schedule.enabled ? 'bg-green-500' : 'bg-gray-400'
+                        schedule.enabled ? 'bg-green-500' : 'bg-muted'
                       }`}></div>
                       <div>
-                        <p className="font-medium text-gray-900">{schedule.streamer_name || schedule.streamer_id}</p>
+                        <p className="font-medium text-foreground">{schedule.streamer_name || schedule.streamer_id}</p>
                         <div className="flex items-center space-x-1">
                           {getPlatformIcon(schedule.platform, 'sm')}
-                          <span className="text-sm text-gray-600">{schedule.platform}</span>
+                          <span className="text-sm text-muted-foreground">{schedule.platform}</span>
                         </div>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-medium text-gray-900">{schedule.quality || 'best'}</p>
+                      <p className="text-sm font-medium text-foreground">{schedule.quality || 'best'}</p>
                       <p className={`text-sm capitalize ${
-                        schedule.enabled ? 'text-green-600' : 'text-gray-500'
+                        schedule.enabled ? 'text-green-600' : 'text-muted-foreground'
                       }`}>
                         {schedule.enabled ? 'Monitoring' : 'Disabled'}
                       </p>
@@ -385,24 +391,24 @@ const Dashboard = () => {
                 ))}
                 {data.schedules.length > 4 && (
                   <div className="text-center pt-2">
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                       +{data.schedules.length - 4} more schedules
                     </p>
                   </div>
                 )}
               </div>
             ) : (
-              <p className="text-gray-500 text-center py-8">No recording schedules configured</p>
+              <p className="text-muted-foreground text-center py-8">No recording schedules configured</p>
             )}
           </div>
         </div>
       </div>
 
       {/* Recent Files */}
-      <div className="bg-white rounded-lg border">
+      <div className="bg-card rounded-lg border">
         <div className="p-6 border-b">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+            <h2 className="text-lg font-semibold text-foreground flex items-center">
               <FolderOpen className="h-5 w-5 mr-2 text-green-500" />
               Recent Files
             </h2>
@@ -419,12 +425,12 @@ const Dashboard = () => {
           {recentFiles.length > 0 ? (
             <div className="space-y-4">
               {recentFiles.map((file: any) => (
-                <div key={file.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                <div key={file.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent hover:text-accent-foreground cursor-pointer">
                   <div className="flex items-center space-x-3">
-                    <FolderOpen className="h-5 w-5 text-gray-400" />
+                    <FolderOpen className="h-5 w-5 text-muted-foreground" />
                     <div>
-                      <p className="font-medium text-gray-900">{file.file_name}</p>
-                      <div className="flex items-center space-x-1 text-sm text-gray-600">
+                      <p className="font-medium text-foreground">{file.file_name}</p>
+                      <div className="flex items-center space-x-1 text-sm text-muted-foreground">
                         <span>{file.streamer_name}</span>
                         <span>•</span>
                         {getPlatformIcon(file.platform, 'sm')}
@@ -433,10 +439,10 @@ const Dashboard = () => {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-medium text-gray-900">
+                    <p className="text-sm font-medium text-foreground">
                       {formatFileSize(file.file_size)}
                     </p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                       {formatRelativeTime(file.created_at)}
                     </p>
                   </div>
@@ -444,7 +450,7 @@ const Dashboard = () => {
               ))}
             </div>
           ) : (
-            <p className="text-gray-500 text-center py-8">No recorded files yet</p>
+            <p className="text-muted-foreground text-center py-8">No recorded files yet</p>
           )}
         </div>
       </div>

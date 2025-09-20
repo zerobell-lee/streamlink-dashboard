@@ -82,27 +82,27 @@ export default function Sidebar({ isOpen, onClose, isCollapsed = false, onToggle
       
       {/* Sidebar */}
       <div className={clsx(
-        "fixed left-0 top-0 h-full bg-white border-r border-gray-200 z-50 transform transition-all duration-300 ease-in-out",
+        "fixed left-0 top-0 h-full bg-background border-r border-border z-50 transform transition-all duration-300 ease-in-out",
         isOpen ? "translate-x-0" : "-translate-x-full",
         "lg:translate-x-0 lg:static lg:z-auto",
         isCollapsed ? "w-20" : "w-64"
       )}>
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className={`p-4 border-b border-gray-200 flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
+          <div className={`p-4 border-b border-border flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
             {!isCollapsed && (
-              <h2 className="text-lg font-semibold text-gray-900">Navigation</h2>
+              <h2 className="text-lg font-semibold text-foreground">Navigation</h2>
             )}
             {onToggleCollapse && (
               <button
                 onClick={onToggleCollapse}
-                className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors hidden lg:flex"
+                className="p-1.5 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors hidden lg:flex"
                 title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
               >
                 {isCollapsed ? (
-                  <ChevronRight className="h-4 w-4 text-gray-600" />
+                  <ChevronRight className="h-4 w-4" />
                 ) : (
-                  <ChevronLeft className="h-4 w-4 text-gray-600" />
+                  <ChevronLeft className="h-4 w-4" />
                 )}
               </button>
             )}
@@ -123,16 +123,16 @@ export default function Sidebar({ isOpen, onClose, isCollapsed = false, onToggle
                   "w-full flex items-center rounded-lg transition-colors",
                   isCollapsed ? "px-2 py-4 justify-center" : "px-3 py-2 space-x-3",
                   isActive && !isCollapsed
-                    ? "bg-blue-50 text-blue-700 border border-blue-200"
+                    ? "bg-accent text-accent-foreground border border-border"
                     : isActive && isCollapsed
-                    ? "text-blue-600"
-                    : "text-gray-700 hover:bg-gray-50"
+                    ? "text-primary"
+                    : "text-foreground hover:bg-accent hover:text-accent-foreground"
                 )}>
                   <Icon className={isCollapsed ? "h-5 w-5" : "h-5 w-5"} />
                   {!isCollapsed && (
                     <div className="flex-1">
                       <div className="font-medium">{item.label}</div>
-                      <div className="text-sm text-gray-500">{item.description}</div>
+                      <div className="text-sm text-muted-foreground">{item.description}</div>
                     </div>
                   )}
                 </div>
@@ -154,8 +154,8 @@ export default function Sidebar({ isOpen, onClose, isCollapsed = false, onToggle
           
           {/* Footer */}
           {!isCollapsed && (
-            <div className="p-4 border-t border-gray-200">
-              <div className="text-sm text-gray-500">
+            <div className="p-4 border-t border-border">
+              <div className="text-sm text-muted-foreground">
                 <div className="font-medium">Streamlink Dashboard</div>
                 <div>v{version}</div>
               </div>

@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     VERSION: str = os.getenv("VERSION", "0.5.0")
     
-    APP_DATA_DIR: str = os.getenv("APP_DATA_DIR", "/app/app_data")
+    APP_DATA_DIR: str = os.getenv("APP_DATA_DIR", "/home/zerobell/workspace/streamlink-dashboard/app_data")
     
     # Database
     DATABASE_URL: str = f"sqlite+aiosqlite:///{APP_DATA_DIR}/database/streamlink_dashboard.db"
