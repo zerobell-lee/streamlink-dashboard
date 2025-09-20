@@ -16,13 +16,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} bg-gray-50`}>
-        <div className="min-h-screen flex flex-col">
-          <Providers>
-            {children}
-          </Providers>
-        </div>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.className} bg-background`}>
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );
