@@ -110,10 +110,10 @@ class LoggingConfig:
         """Create a rotating file handler for a category"""
         log_file = self.logs_dir / f"{category}.log"
         
-        # Create rotating file handler (50MB max, keep 10 files)
+        # Create rotating file handler (5MB max, keep 10 files)
         handler = logging.handlers.RotatingFileHandler(
             log_file,
-            maxBytes=50 * 1024 * 1024,  # 50MB
+            maxBytes=5 * 1024 * 1024,  # 5MB
             backupCount=10,
             encoding='utf-8'
         )
@@ -148,7 +148,7 @@ class LoggingConfig:
         
         handler = logging.handlers.RotatingFileHandler(
             log_file,
-            maxBytes=50 * 1024 * 1024,
+            maxBytes=5 * 1024 * 1024,  # 5MB
             backupCount=5,
             encoding='utf-8'
         )
