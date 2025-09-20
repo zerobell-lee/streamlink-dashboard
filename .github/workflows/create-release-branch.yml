@@ -15,7 +15,6 @@ on:
 
 permissions:
   contents: write
-  pull-requests: write
 
 jobs:
   create-release-branch:
@@ -102,55 +101,7 @@ jobs:
         run: |
           echo "Pushing version changes to release branch..."
           git push origin "release/v${{ inputs.version }}"
-          
-      - name: Create pull request
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const { data: pr } = await github.rest.pulls.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              title: `Release v${{ inputs.version }}`,
-              head: `release/v${{ inputs.version }}`,
-              base: 'master',
-              body: `## Release v${{ inputs.version }}
 
-              This PR contains the release preparation for version ${{ inputs.version }}.
-
-              ### Changes
-              - ✅ Version bumped to \`${{ inputs.version }}\` across all configuration files
-              - ✅ Backend and frontend versions synchronized
-              - ✅ Version validation completed
-
-              ### Automated Changes
-              - \`backend/.env\`: Updated \`VERSION=${{ inputs.version }}\`
-              - \`frontend/.env.local\`: Updated \`NEXT_PUBLIC_APP_VERSION=${{ inputs.version }}\`
-              - \`.env.example\`: Updated version references
-
-              ### Next Steps
-              1. Review the version changes
-              2. Merge this PR to create the release
-              3. Create a GitHub release with tag \`v${{ inputs.version }}\`
-
-              ---
-              🤖 This PR was created automatically by GitHub Actions.`,
-              draft: false
-            });
-            
-            console.log(`Created pull request #${pr.number}: ${pr.html_url}`);
-            
-            // Add labels if they exist
-            try {
-              await github.rest.issues.addLabels({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: pr.number,
-                labels: ['release', 'automated']
-              });
-            } catch (error) {
-              console.log('Labels not added (labels may not exist):', error.message);
-            }
-            
       - name: Summary
         run: |
           echo "🎉 Release branch creation completed!"
@@ -158,9 +109,9 @@ jobs:
           echo "  - Branch: release/v${{ inputs.version }}"
           echo "  - Version: ${{ inputs.version }}"
           echo "  - Base: ${{ inputs.base_branch }}"
-          echo "  - Pull Request: Created automatically"
           echo ""
           echo "Next steps:"
-          echo "1. Review the created pull request"
-          echo "2. Merge to master when ready"
-          echo "3. Create GitHub release with tag v${{ inputs.version }}"
+          echo "1. Create a pull request from release/v${{ inputs.version }} to master"
+          echo "2. Review the version changes"
+          echo "3. Merge the PR when ready"
+          echo "4. Create GitHub release with tag v${{ inputs.version }}"
