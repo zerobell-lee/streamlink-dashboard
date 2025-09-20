@@ -293,19 +293,16 @@ class SchedulerService:
                             logger.info(f"Schedule {schedule.id} disabled or deleted, stopping monitoring")
                             break
                         
-                        # Create new service instances with the new session
-                        platform_service = PlatformService(session)
-                        streamlink_service = StreamlinkService(session)
-                        
-                        # Check if stream is live
-                        stream_info = await platform_service.get_stream_info(
-                            current_schedule.platform, 
-                            current_schedule.streamer_id
-                        )
-                        
-                        if stream_info and stream_info.is_live:
-                            # Stream is live, check if we're already recording
-                            if not await streamlink_service.is_schedule_recording_active(current_schedule.id):
+                        # First check if we're already recording (fast DB check)
+                        if not await self.streamlink_service.is_schedule_recording_active(current_schedule.id):
+                            # Not recording, now check if stream is live (slower API call)
+                            stream_info = await self.platform_service.get_stream_info(
+                                current_schedule.platform,
+                                current_schedule.streamer_id
+                            )
+
+                            if stream_info and stream_info.is_live:
+                                # Stream is live and we're not recording, start recording
                                 await self._start_recording_with_session(session, current_schedule, stream_info)
                     
                     # Wait before next check
