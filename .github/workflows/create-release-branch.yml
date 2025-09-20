@@ -64,12 +64,31 @@ jobs:
           echo "Creating release branch: $branch_name"
           git checkout -b "$branch_name"
           git push -u origin "$branch_name"
-          
+
+      - name: Prepare environment files
+        run: |
+          echo "Creating .env files from examples..."
+
+          # Create backend/.env from backend/.env.example
+          if [ -f "backend/.env.example" ]; then
+            cp backend/.env.example backend/.env
+            echo "Created backend/.env from backend/.env.example"
+          else
+            echo "Warning: backend/.env.example not found"
+          fi
+
+          # Create frontend/.env.local from frontend/.env.example
+          if [ -f "frontend/.env.example" ]; then
+            cp frontend/.env.example frontend/.env.local
+            echo "Created frontend/.env.local from frontend/.env.example"
+          else
+            echo "Warning: frontend/.env.example not found"
+          fi
+
       - name: Make scripts executable
         run: |
           chmod +x scripts/check-version-sync.sh
           chmod +x scripts/update-version.sh
-          
       - name: Update version using script
         run: |
           echo "Updating version to ${{ inputs.version }}"
