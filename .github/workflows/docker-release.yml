@@ -73,6 +73,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-and-push
     if: always()
+    permissions:
+      contents: read
+      security-events: write
 
     steps:
       - name: Checkout repository
