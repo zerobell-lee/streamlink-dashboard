@@ -1,13 +1,14 @@
 "use client";
 
-import { 
+import {
   BarChart3,
-  Video, 
-  Clock, 
+  Video,
+  Clock,
   Settings,
   Film,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  FileText
 } from 'lucide-react';
 import clsx from 'clsx';
 import Link from 'next/link';
@@ -48,6 +49,13 @@ const menuItems = [
     icon: Video,
     description: 'API configurations',
     href: '/platforms'
+  },
+  {
+    id: 'logs',
+    label: 'Logs',
+    icon: FileText,
+    description: 'Log management',
+    href: '/logs'
   },
   {
     id: 'system',
