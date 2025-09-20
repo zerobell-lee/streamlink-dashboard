@@ -5,7 +5,6 @@ from pydantic_settings import BaseSettings
 from typing import List, Optional
 import os
 import logging
-from pathlib import Path
 from dotenv import load_dotenv
 
 # Load .env file if it exists
