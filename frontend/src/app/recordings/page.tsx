@@ -28,6 +28,7 @@ import clsx from 'clsx';
 import { api } from '@/lib/api';
 import { formatDate, formatDuration, formatFileSize } from '@/lib/utils';
 import { getPlatformIcon } from '@/lib/platformIcons';
+import ErrorMessageModal from '@/components/ErrorMessageModal';
 
 interface Recording {
   id: number;
@@ -72,6 +73,8 @@ export default function RecordingsPage() {
     quality: 'all',
     dateRange: 'all'
   });
+  const [errorModalOpen, setErrorModalOpen] = useState(false);
+  const [selectedErrorRecording, setSelectedErrorRecording] = useState<Recording | null>(null);
 
   const queryClient = useQueryClient();
 
@@ -669,12 +672,17 @@ export default function RecordingsPage() {
                           <span>{formatFileSize(recording.file_size)}</span>
                         </div>
                         {recording.status === 'failed' && recording.error_message && (
-                          <div className="flex items-center space-x-1 text-red-600">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedErrorRecording(recording);
+                              setErrorModalOpen(true);
+                            }}
+                            className="flex items-center space-x-1 text-red-600 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded text-left w-full"
+                          >
                             <AlertCircle className="h-3 w-3 flex-shrink-0" />
-                            <span className="truncate" title={recording.error_message}>
-                              {recording.error_message}
-                            </span>
-                          </div>
+                            <span className="text-xs">에러 상세 보기</span>
+                          </button>
                         )}
                       </div>
                     </div>
@@ -715,10 +723,17 @@ export default function RecordingsPage() {
                       </div>
                       <p className="text-sm text-gray-600">{recording.streamer_name}</p>
                       {recording.status === 'failed' && recording.error_message && (
-                        <div className="flex items-center space-x-1 text-xs text-red-600 mt-1">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedErrorRecording(recording);
+                            setErrorModalOpen(true);
+                          }}
+                          className="flex items-center space-x-1 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded mt-1"
+                        >
                           <AlertCircle className="h-3 w-3" />
-                          <span>{recording.error_message}</span>
-                        </div>
+                          <span>에러 상세 보기</span>
+                        </button>
                       )}
                     </div>
                     
@@ -906,6 +921,25 @@ export default function RecordingsPage() {
             </button>
           </div>
         </div>
+      )}
+
+      {/* Error Message Modal */}
+      {selectedErrorRecording && (
+        <ErrorMessageModal
+          isOpen={errorModalOpen}
+          onClose={() => {
+            setErrorModalOpen(false);
+            setSelectedErrorRecording(null);
+          }}
+          title="레코딩 에러 상세 정보"
+          errorMessage={selectedErrorRecording.error_message || ''}
+          recordingInfo={{
+            fileName: selectedErrorRecording.file_name,
+            streamerName: selectedErrorRecording.streamer_name,
+            platform: selectedErrorRecording.platform,
+            startTime: formatDate(selectedErrorRecording.start_time)
+          }}
+        />
       )}
     </div>
   );

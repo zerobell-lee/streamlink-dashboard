@@ -63,7 +63,6 @@ jobs:
           echo "Creating release branch: $branch_name"
           git checkout -b "$branch_name"
           git push -u origin "$branch_name"
-
       - name: Prepare environment files
         run: |
           echo "Creating .env files from examples..."
