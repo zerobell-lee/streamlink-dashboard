@@ -129,8 +129,18 @@ export const api = {
     getLogFiles: () => apiClient.get('/api/v1/system/logging/files'),
     getLogFileContent: (filename: string, lines: number = 100) => 
       apiClient.get(`/api/v1/system/logging/files/${filename}?lines=${lines}`),
-    cleanupLogs: (maxAgeDays: number = 30) => 
+    cleanupLogs: (maxAgeDays: number = 30) =>
       apiClient.post(`/api/v1/system/logging/cleanup?max_age_days=${maxAgeDays}`),
+  },
+
+  // Enhanced Logs API
+  logs: {
+    getCategories: () => apiClient.get('/api/v1/logs/categories'),
+    getFiles: () => apiClient.get('/api/v1/logs/files'),
+    getFileContent: (filename: string, page: number = 1, perPage: number = 100, reverse: boolean = true) =>
+      apiClient.get(`/api/v1/logs/files/${filename}/content?page=${page}&per_page=${perPage}&reverse=${reverse}`),
+    search: (searchParams: any) => apiClient.post('/api/v1/logs/search', searchParams),
+    getAnalytics: (hours: number = 24) => apiClient.get(`/api/v1/logs/analytics?hours=${hours}`),
   },
 
   // Scheduler

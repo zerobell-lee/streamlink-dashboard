@@ -241,3 +241,91 @@ export interface LogCleanupResponse {
   cleaned_files: string[];
   max_age_days: number;
 }
+
+// Enhanced Log Management Types
+export interface LogSearchRequest {
+  query: string;
+  category?: string;
+  level?: string;
+  start_time?: string;
+  end_time?: string;
+  limit: number;
+}
+
+export interface LogEntry {
+  timestamp?: string;
+  logger?: string;
+  level: string;
+  message: string;
+}
+
+export interface LogSearchResult {
+  file: string;
+  line_number: number;
+  content: string;
+  parsed: LogEntry;
+}
+
+export interface LogSearchResponse {
+  results: LogSearchResult[];
+  total_found: number;
+  search_params: LogSearchRequest;
+  truncated: boolean;
+}
+
+export interface LogAnalytics {
+  time_range: {
+    start: string;
+    end: string;
+    hours: number;
+  };
+  by_level: { [level: string]: number };
+  by_category: { [category: string]: number };
+  by_hour: { [hour: string]: number };
+  error_patterns: Array<{
+    timestamp?: string;
+    level: string;
+    message: string;
+    category: string;
+  }>;
+  total_entries: number;
+}
+
+export interface EnhancedLogFileInfo extends LogFileInfo {
+  line_count?: number;
+  category: string;
+  is_json: boolean;
+  can_search: boolean;
+}
+
+export interface EnhancedLogFilesResponse {
+  log_files: { [filename: string]: EnhancedLogFileInfo };
+  logs_directory: string;
+  total_files: number;
+}
+
+export interface PaginatedLogContent {
+  filename: string;
+  total_lines: number;
+  total_pages: number;
+  current_page: number;
+  per_page: number;
+  has_next: boolean;
+  has_prev: boolean;
+  content: string[];
+  reversed: boolean;
+}
+
+export interface LogCategoriesResponse {
+  categories: string[];
+  category_info: { [category: string]: any };
+}
+
+export interface LogStreamMessage {
+  timestamp: string;
+  file: string;
+  category: string;
+  content: string;
+  parsed: LogEntry;
+  error?: string;
+}

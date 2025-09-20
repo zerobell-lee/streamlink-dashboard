@@ -3,23 +3,15 @@
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/auth-store';
 import { api } from '@/lib/api';
-import { 
-  Settings, 
-  Key, 
+import {
+  Settings,
+  Key,
   Clock,
   Save,
   User,
-  FileText,
-  Eye,
-  Trash2,
-  Activity
+  FileText
 } from 'lucide-react';
-import type { 
-  LoggingConfig, 
-  LogFilesResponse, 
-  LogFileContent,
-  LogCleanupResponse 
-} from '@/types';
+import type { LoggingConfig } from '@/types';
 
 type TabType = 'security' | 'monitoring' | 'logging';
 
@@ -285,113 +277,59 @@ function LoggingTab() {
       error: true
     }
   });
-  const [loggingLoading, setLoggingLoading] = useState(false);
-  const [loggingError, setLoggingError] = useState('');
-  const [loggingSuccess, setLoggingSuccess] = useState(false);
-  
-  const [logFiles, setLogFiles] = useState<LogFilesResponse | null>(null);
-  const [logFilesLoading, setLogFilesLoading] = useState(false);
-  const [selectedLogFile, setSelectedLogFile] = useState<string | null>(null);
-  const [logContent, setLogContent] = useState<LogFileContent | null>(null);
-  const [logContentLoading, setLogContentLoading] = useState(false);
-  
-  const [cleanupLoading, setCleanupLoading] = useState(false);
-  const [cleanupSuccess, setCleanupSuccess] = useState(false);
+  const [configLoading, setConfigLoading] = useState(false);
+  const [configError, setConfigError] = useState('');
+  const [configSuccess, setConfigSuccess] = useState(false);
 
   useEffect(() => {
-    const loadLoggingData = async () => {
+    const loadLoggingConfig = async () => {
       try {
         const response = await api.system.getLoggingConfig();
         setLoggingConfig(response.data);
       } catch (error) {
         console.warn('Failed to load logging config:', error);
       }
-
-      await loadLogFiles();
     };
-
-    loadLoggingData();
+    loadLoggingConfig();
   }, []);
 
-  const loadLogFiles = async () => {
-    setLogFilesLoading(true);
-    try {
-      const response = await api.system.getLogFiles();
-      setLogFiles(response.data);
-    } catch (error) {
-      console.warn('Failed to load log files:', error);
-    } finally {
-      setLogFilesLoading(false);
-    }
-  };
-
-  const handleLoggingConfigChange = async (e: React.FormEvent) => {
+  const handleConfigSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoggingError('');
-    setLoggingLoading(true);
+    setConfigError('');
+    setConfigLoading(true);
 
     try {
       await api.system.updateLoggingConfig(loggingConfig);
-      setLoggingSuccess(true);
-      setTimeout(() => setLoggingSuccess(false), 3000);
+      setConfigSuccess(true);
+      setTimeout(() => setConfigSuccess(false), 3000);
     } catch (err: any) {
-      setLoggingError(err.response?.data?.detail || 'Failed to update logging configuration');
+      setConfigError(err.response?.data?.detail || 'Failed to update logging configuration');
     } finally {
-      setLoggingLoading(false);
-    }
-  };
-
-  const handleLogFileView = async (filename: string) => {
-    setSelectedLogFile(filename);
-    setLogContentLoading(true);
-    
-    try {
-      const response = await api.system.getLogFileContent(filename, 100);
-      setLogContent(response.data);
-    } catch (error) {
-      console.error('Failed to load log file content:', error);
-    } finally {
-      setLogContentLoading(false);
-    }
-  };
-
-  const handleLogCleanup = async () => {
-    setCleanupLoading(true);
-    
-    try {
-      await api.system.cleanupLogs(loggingConfig.log_retention_days);
-      setCleanupSuccess(true);
-      setTimeout(() => setCleanupSuccess(false), 3000);
-      await loadLogFiles();
-    } catch (error) {
-      console.error('Failed to cleanup logs:', error);
-    } finally {
-      setCleanupLoading(false);
+      setConfigLoading(false);
     }
   };
 
   return (
-    <div className="space-y-8">
-      {/* Logging Configuration */}
+    <div className="space-y-6">
       <div>
         <h3 className="text-lg font-medium text-gray-900 flex items-center mb-4">
           <Settings className="h-5 w-5 mr-2 text-gray-600" />
           Logging Configuration
         </h3>
         <p className="text-sm text-gray-600 mb-4">
-          Configure system logging settings and categories.
+          Configure system logging settings and categories. For log viewing and management, visit the <a href="/logs" className="text-blue-600 hover:text-blue-700">Log Management</a> page.
         </p>
-        
-        <form onSubmit={handleLoggingConfigChange} className="space-y-6 max-w-2xl">
-          {loggingError && (
+
+        <form onSubmit={handleConfigSave} className="space-y-6 max-w-2xl">
+          {configError && (
             <div className="bg-red-50 border border-red-200 rounded-md p-3">
-              <p className="text-sm text-red-600">{loggingError}</p>
+              <p className="text-sm text-red-600">{configError}</p>
             </div>
           )}
-          
-          {loggingSuccess && (
+
+          {configSuccess && (
             <div className="bg-green-50 border border-green-200 rounded-md p-3">
-              <p className="text-sm text-green-600">Logging configuration updated successfully!</p>
+              <p className="text-sm text-green-600">Configuration updated successfully!</p>
             </div>
           )}
 
@@ -486,108 +424,14 @@ function LoggingTab() {
 
           <button
             type="submit"
-            disabled={loggingLoading}
+            disabled={configLoading}
             className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors disabled:opacity-50"
           >
             <Save className="h-4 w-4 mr-2" />
-            {loggingLoading ? 'Saving...' : 'Save Configuration'}
+            {configLoading ? 'Saving...' : 'Save Configuration'}
           </button>
         </form>
       </div>
-
-      {/* Log Files Management */}
-      <div className="border-t pt-8">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-medium text-gray-900 flex items-center">
-            <Activity className="h-5 w-5 mr-2 text-gray-600" />
-            Log Files
-          </h3>
-          <div className="flex space-x-2">
-            <button
-              onClick={loadLogFiles}
-              disabled={logFilesLoading}
-              className="flex items-center px-3 py-1 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors disabled:opacity-50"
-            >
-              <Activity className="h-3 w-3 mr-1" />
-              {logFilesLoading ? 'Loading...' : 'Refresh'}
-            </button>
-            <button
-              onClick={handleLogCleanup}
-              disabled={cleanupLoading}
-              className="flex items-center px-3 py-1 text-xs font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors disabled:opacity-50"
-            >
-              <Trash2 className="h-3 w-3 mr-1" />
-              {cleanupLoading ? 'Cleaning...' : 'Cleanup Old'}
-            </button>
-          </div>
-        </div>
-
-        {cleanupSuccess && (
-          <div className="bg-green-50 border border-green-200 rounded-md p-3 mb-4">
-            <p className="text-sm text-green-600">Log cleanup completed successfully!</p>
-          </div>
-        )}
-
-        {logFiles && (
-          <div className="space-y-3">
-            {Object.entries(logFiles.log_files).map(([filename, fileInfo]) => (
-              <div key={filename} className="border rounded-lg p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-900">{filename}</h4>
-                    <p className="text-xs text-gray-500">
-                      Size: {fileInfo.size_mb} MB • Modified: {new Date(fileInfo.modified).toLocaleString()}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => handleLogFileView(filename)}
-                    className="flex items-center px-2 py-1 text-xs font-medium text-blue-600 hover:text-blue-700 transition-colors"
-                  >
-                    <Eye className="h-3 w-3 mr-1" />
-                    View
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Log Content Viewer */}
-      {selectedLogFile && (
-        <div className="border-t pt-8">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium text-gray-900">
-              {selectedLogFile} Content
-            </h3>
-            <button
-              onClick={() => setSelectedLogFile(null)}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              ✕
-            </button>
-          </div>
-          
-          {logContentLoading ? (
-            <div className="bg-gray-50 rounded-lg p-4 text-center">
-              <p className="text-sm text-gray-500">Loading log content...</p>
-            </div>
-          ) : logContent ? (
-            <div className="bg-gray-900 text-gray-100 rounded-lg p-4 max-h-96 overflow-y-auto">
-              <div className="text-xs mb-2 text-gray-400">
-                Showing last {logContent.showing_lines} lines of {logContent.total_lines} total lines
-              </div>
-              <pre className="text-xs leading-relaxed whitespace-pre-wrap font-mono">
-                {logContent.content.join('\n')}
-              </pre>
-            </div>
-          ) : (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <p className="text-sm text-red-600">Failed to load log file content.</p>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }
@@ -612,7 +456,7 @@ export default function SystemSettings() {
       id: 'logging',
       label: 'Logging',
       icon: <FileText className="h-4 w-4" />,
-      description: 'System logging configuration and file management'
+      description: 'System logging configuration and settings'
     }
   ];
 
