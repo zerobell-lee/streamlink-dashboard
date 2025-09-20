@@ -13,6 +13,7 @@ from app.database.models import Recording, User
 from app.core.auth import get_current_user
 from app.core.config import settings
 from app.schemas.recording import RecordingResponse, RecordingCreate, RecordingUpdate
+from app.core.service_container import get_service_container
 
 router = APIRouter()
 
@@ -24,125 +25,123 @@ async def get_recordings(
     platform: Optional[str] = None,
     streamer_id: Optional[str] = None,
     is_favorite: Optional[bool] = None,
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Get list of recordings with optional filters
     """
-    query = select(Recording)
-    
-    # Apply filters
-    filters = []
-    if platform:
-        filters.append(Recording.platform == platform)
-    if streamer_id:
-        filters.append(Recording.streamer_id == streamer_id)
-    if is_favorite is not None:
-        filters.append(Recording.is_favorite == is_favorite)
-    
-    if filters:
-        query = query.where(and_(*filters))
-    
-    # Apply pagination
-    query = query.offset(skip).limit(limit).order_by(Recording.created_at.desc())
-    
-    result = await db.execute(query)
-    recordings = result.scalars().all()
-    
-    return recordings
+    container = get_service_container()
+
+    async with container.get_uow_factory()() as uow:
+        query = select(Recording)
+
+        # Apply filters
+        filters = []
+        if platform:
+            filters.append(Recording.platform == platform)
+        if streamer_id:
+            filters.append(Recording.streamer_id == streamer_id)
+        if is_favorite is not None:
+            filters.append(Recording.is_favorite == is_favorite)
+
+        if filters:
+            query = query.where(and_(*filters))
+
+        # Apply pagination
+        query = query.offset(skip).limit(limit).order_by(Recording.created_at.desc())
+
+        result = await uow._session.execute(query)
+        recordings = result.scalars().all()
+
+        return recordings
 
 
 @router.get("/{recording_id}", response_model=RecordingResponse)
 async def get_recording(
     recording_id: int,
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Get specific recording by ID
     """
-    result = await db.execute(
-        select(Recording).where(Recording.id == recording_id)
-    )
-    recording = result.scalar_one_or_none()
-    
-    if not recording:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Recording not found"
-        )
-    
-    return recording
+    container = get_service_container()
+
+    async with container.get_uow_factory()() as uow:
+        recording = await uow.recordings.get_by_id(recording_id)
+
+        if not recording:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Recording not found"
+            )
+
+        return recording
 
 
 @router.put("/{recording_id}/favorite")
 async def toggle_favorite(
     recording_id: int,
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Toggle favorite status of a recording
     """
-    result = await db.execute(
-        select(Recording).where(Recording.id == recording_id)
-    )
-    recording = result.scalar_one_or_none()
-    
-    if not recording:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Recording not found"
-        )
-    
-    recording.is_favorite = not recording.is_favorite
-    await db.commit()
-    await db.refresh(recording)
-    
-    return {"message": f"Recording {'marked as favorite' if recording.is_favorite else 'unmarked from favorite'}"}
+    container = get_service_container()
+
+    async with container.get_uow_factory()() as uow:
+        recording = await uow.recordings.get_by_id(recording_id)
+
+        if not recording:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Recording not found"
+            )
+
+        recording.is_favorite = not recording.is_favorite
+        await uow.recordings.update(recording)
+        await uow.commit()
+
+        return {"message": f"Recording {'marked as favorite' if recording.is_favorite else 'unmarked from favorite'}"}
 
 
 @router.get("/{recording_id}/download")
 async def download_recording(
     recording_id: int,
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Download a recording file
     """
-    result = await db.execute(
-        select(Recording).where(Recording.id == recording_id)
-    )
-    recording = result.scalar_one_or_none()
-    
-    if not recording:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Recording not found"
+    container = get_service_container()
+
+    async with container.get_uow_factory()() as uow:
+        recording = await uow.recordings.get_by_id(recording_id)
+
+        if not recording:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Recording not found"
+            )
+
+        # Check if file exists
+        if not os.path.exists(recording.file_path):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Recording file not found on disk"
+            )
+
+        # Return file as download
+        return FileResponse(
+            path=recording.file_path,
+            filename=recording.file_name,
+            media_type='application/octet-stream'
         )
-    
-    # Check if file exists
-    if not os.path.exists(recording.file_path):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Recording file not found on disk"
-        )
-    
-    # Return file as download
-    return FileResponse(
-        path=recording.file_path,
-        filename=recording.file_name,
-        media_type='application/octet-stream'
-    )
 
 
 @router.delete("/{recording_id}")
 async def delete_recording(
     recording_id: int,
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    current_user: User = Depends(get_current_user)
 ):
     """
     Delete a recording (admin only)
@@ -152,29 +151,30 @@ async def delete_recording(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin privileges required"
         )
-    
-    result = await db.execute(
-        select(Recording).where(Recording.id == recording_id)
-    )
-    recording = result.scalar_one_or_none()
-    
-    if not recording:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Recording not found"
-        )
-    
-    # Delete file if exists
-    if os.path.exists(recording.file_path):
-        try:
-            os.remove(recording.file_path)
-        except OSError as e:
+
+    container = get_service_container()
+
+    async with container.get_uow_factory()() as uow:
+        recording = await uow.recordings.get_by_id(recording_id)
+
+        if not recording:
             raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Failed to delete file: {str(e)}"
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Recording not found"
             )
-    
-    await db.delete(recording)
-    await db.commit()
-    
-    return {"message": "Recording deleted successfully"}
+
+        # Delete file if exists
+        if os.path.exists(recording.file_path):
+            try:
+                os.remove(recording.file_path)
+            except OSError as e:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail=f"Failed to delete file: {str(e)}"
+                )
+
+        success = await uow.recordings.delete(recording_id)
+        if success:
+            await uow.commit()
+
+        return {"message": "Recording deleted successfully"}

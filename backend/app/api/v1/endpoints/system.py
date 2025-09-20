@@ -163,10 +163,12 @@ async def trigger_rotation_cleanup(
     """
     Trigger immediate rotation cleanup
     """
-    from app.services.scheduler_service import SchedulerService
-    
-    scheduler_service = SchedulerService(db)
-    
+    from app.core.service_container import get_service_container
+
+    # Use the global service container to get SchedulerServiceV2
+    service_container = get_service_container()
+    scheduler_service = service_container.get_scheduler_service()
+
     try:
         await scheduler_service.run_rotation_cleanup()
         return {"message": "Rotation cleanup completed successfully"}

@@ -40,17 +40,12 @@ from app.database.database import engine, get_db, AsyncSessionLocal
 from app.database.models import Base
 from app.core.auth import get_current_user
 from app.api.v1.api import api_router
-from app.services.scheduler_service import SchedulerService
-
-
-# Global scheduler service instance
-scheduler_service: Optional[SchedulerService] = None
+from app.core.service_container import get_service_container
 
 # Create database tables on startup
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan events"""
-    global scheduler_service
     
     # Startup
     # Ensure all required directories exist before any database operations
@@ -165,7 +160,7 @@ async def lifespan(app: FastAPI):
     # Start Next.js server
     await start_nextjs()
     
-    # Initialize scheduler service and create default data
+    # Initialize service container and create default data
     try:
         async with AsyncSessionLocal() as db:
             # Create default admin user if not exists
@@ -173,7 +168,7 @@ async def lifespan(app: FastAPI):
             from sqlalchemy import select
             result = await db.execute(select(User).where(User.username == "admin"))
             admin_user = result.scalar_one_or_none()
-            
+
             if not admin_user:
                 import hashlib
                 password_hash = hashlib.sha256("admin123".encode()).hexdigest()
@@ -185,15 +180,15 @@ async def lifespan(app: FastAPI):
                 db.add(admin_user)
                 await db.commit()
                 logging.info("Created default admin user (admin/admin123)")
-            
-            # Initialize scheduler
-            scheduler_service = SchedulerService(db)
-            if settings.AUTO_START_SCHEDULER:
-                await scheduler_service.start()
-                logging.info("Scheduler started automatically")
-                
+
+        # Initialize service container
+        container = get_service_container()
+        if settings.AUTO_START_SCHEDULER:
+            await container.start_services()
+            logging.info("Services started automatically")
+
     except Exception as e:
-        logging.warning(f"Could not initialize scheduler service: {e}")
+        logging.warning(f"Could not initialize services: {e}")
     
     yield
     
@@ -214,20 +209,13 @@ async def lifespan(app: FastAPI):
             except:
                 pass
     
-    if scheduler_service:
-        try:
-            # Stop all active recordings first
-            from app.services.streamlink_service import StreamlinkService
-            async with AsyncSessionLocal() as db:
-                streamlink_service = StreamlinkService(db)
-                await streamlink_service.stop_all_recordings()
-                logging.info("Stopped all active recordings")
-            
-            # Stop scheduler
-            await scheduler_service.stop()
-            logging.info("Scheduler stopped")
-        except Exception as e:
-            logging.warning(f"Error stopping scheduler: {e}")
+    # Stop services
+    try:
+        container = get_service_container()
+        await container.stop_services()
+        logging.info("Services stopped")
+    except Exception as e:
+        logging.warning(f"Error stopping services: {e}")
     
     # Force kill any remaining subprocesses
     try:
@@ -442,15 +430,17 @@ async def root():
 @app.get("/scheduler-status")
 async def scheduler_status():
     """Get basic scheduler status without authentication"""
-    if scheduler_service:
+    try:
+        container = get_service_container()
+        scheduler_service = container.get_scheduler_service()
         return {
             "scheduler_running": scheduler_service.is_running(),
             "scheduler_info": scheduler_service.get_scheduler_info()
         }
-    else:
+    except Exception as e:
         return {
             "scheduler_running": False,
-            "error": "Scheduler service not initialized"
+            "error": f"Scheduler service error: {str(e)}"
         }
 
 
