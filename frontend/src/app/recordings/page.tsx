@@ -684,7 +684,7 @@ export default function RecordingsPage() {
                             className="flex items-center space-x-1 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 px-2 py-1 rounded text-left w-full"
                           >
                             <AlertCircle className="h-3 w-3 flex-shrink-0" />
-                            <span className="text-xs">에러 상세 보기</span>
+                            <span className="text-xs">View Error Details</span>
                           </button>
                         )}
                       </div>
@@ -735,7 +735,7 @@ export default function RecordingsPage() {
                           className="flex items-center space-x-1 text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 px-2 py-1 rounded mt-1"
                         >
                           <AlertCircle className="h-3 w-3" />
-                          <span>에러 상세 보기</span>
+                          <span>View Error Details</span>
                         </button>
                       )}
                     </div>
@@ -934,7 +934,7 @@ export default function RecordingsPage() {
             setErrorModalOpen(false);
             setSelectedErrorRecording(null);
           }}
-          title="레코딩 에러 상세 정보"
+          title="Recording Error Details"
           errorMessage={selectedErrorRecording.error_message || ''}
           recordingInfo={{
             fileName: selectedErrorRecording.file_name,

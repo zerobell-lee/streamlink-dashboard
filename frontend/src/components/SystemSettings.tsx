@@ -9,7 +9,10 @@ import {
   Clock,
   Save,
   User,
-  FileText
+  FileText,
+  Activity,
+  Trash2,
+  Eye
 } from 'lucide-react';
 import type { LoggingConfig } from '@/types';
 
@@ -281,6 +284,15 @@ function LoggingTab() {
   const [configError, setConfigError] = useState('');
   const [configSuccess, setConfigSuccess] = useState(false);
 
+  // Log files management states
+  const [logFiles, setLogFiles] = useState<any>(null);
+  const [logFilesLoading, setLogFilesLoading] = useState(false);
+  const [cleanupLoading, setCleanupLoading] = useState(false);
+  const [cleanupSuccess, setCleanupSuccess] = useState(false);
+  const [selectedLogFile, setSelectedLogFile] = useState<string | null>(null);
+  const [logContent, setLogContent] = useState<any>(null);
+  const [logContentLoading, setLogContentLoading] = useState(false);
+
   useEffect(() => {
     const loadLoggingConfig = async () => {
       try {
@@ -308,6 +320,54 @@ function LoggingTab() {
       setConfigLoading(false);
     }
   };
+
+  // Log files management functions
+  const loadLogFiles = async () => {
+    setLogFilesLoading(true);
+    try {
+      const response = await api.system.getLogFiles();
+      setLogFiles(response.data);
+    } catch (error) {
+      console.error('Failed to load log files:', error);
+    } finally {
+      setLogFilesLoading(false);
+    }
+  };
+
+  const handleLogCleanup = async () => {
+    setCleanupLoading(true);
+    setCleanupSuccess(false);
+    try {
+      await api.system.cleanupLogs(30);
+      setCleanupSuccess(true);
+      setTimeout(() => setCleanupSuccess(false), 3000);
+      // Reload log files after cleanup
+      loadLogFiles();
+    } catch (error) {
+      console.error('Failed to cleanup logs:', error);
+    } finally {
+      setCleanupLoading(false);
+    }
+  };
+
+  const handleLogFileView = async (filename: string) => {
+    setSelectedLogFile(filename);
+    setLogContentLoading(true);
+    try {
+      const response = await api.system.getLogFileContent(filename, 100);
+      setLogContent(response.data);
+    } catch (error) {
+      console.error('Failed to load log content:', error);
+      setLogContent({ content: [], total_lines: 0, showing_lines: 0, error: 'Failed to load log content' });
+    } finally {
+      setLogContentLoading(false);
+    }
+  };
+
+  // Load log files on component mount
+  useEffect(() => {
+    loadLogFiles();
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -510,14 +570,18 @@ function LoggingTab() {
             <div className="bg-accent rounded-lg p-4 text-center">
               <p className="text-sm text-muted-foreground">Loading log content...</p>
             </div>
-          ) : logContent ? (
+          ) : logContent && logContent.content ? (
             <div className="bg-background text-foreground dark:bg-muted dark:text-muted-foreground rounded-lg p-4 max-h-96 overflow-y-auto">
               <div className="text-xs mb-2 text-muted-foreground">
                 Showing last {logContent.showing_lines} lines of {logContent.total_lines} total lines
               </div>
               <pre className="text-xs leading-relaxed whitespace-pre-wrap font-mono">
-                {logContent.content.join('\n')}
+                {Array.isArray(logContent.content) ? logContent.content.join('\n') : logContent.content}
               </pre>
+            </div>
+          ) : logContent && logContent.error ? (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <p className="text-sm text-red-600">{logContent.error}</p>
             </div>
           ) : (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4">

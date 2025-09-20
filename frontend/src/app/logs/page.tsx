@@ -1,4 +1,5 @@
 import DashboardLayout from '@/components/DashboardLayout';
+import EnhancedLoggingTab from '@/components/EnhancedLoggingTab';
 import { FileText } from 'lucide-react';
 
 export default function LogsPage() {
@@ -17,11 +18,7 @@ export default function LogsPage() {
           </div>
 
           <div className="bg-card rounded-lg shadow-sm border border-border">
-            <div className="p-6">
-              <p className="text-muted-foreground text-center">
-                Log management functionality will be implemented here.
-              </p>
-            </div>
+            <EnhancedLoggingTab />
           </div>
         </div>
       </div>

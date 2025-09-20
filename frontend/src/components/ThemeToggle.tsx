@@ -55,10 +55,10 @@ export function ThemeToggle() {
           "flex items-center justify-center transition-colors",
           "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
         )}
-        title={`현재 테마: ${currentTheme.label} (클릭하여 전환)`}
+        title={`Current theme: ${currentTheme.label} (click to toggle)`}
       >
         <CurrentIcon className="h-4 w-4" />
-        <span className="sr-only">테마 전환</span>
+        <span className="sr-only">Toggle theme</span>
       </button>
     </div>
   );

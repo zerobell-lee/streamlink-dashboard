@@ -422,7 +422,7 @@ const RecordingSchedules = () => {
                       <option value="twitch" className="text-foreground bg-card">Twitch</option>
                       <option value="youtube" className="text-foreground bg-card">YouTube</option>
                       <option value="sooplive" className="text-foreground bg-card">SoopLive</option>
-                      <option value="chzzk" className="text-foreground bg-card">Chzzk (치지직)</option>
+                      <option value="chzzk" className="text-foreground bg-card">Chzzk</option>
                     </select>
                   </div>
 

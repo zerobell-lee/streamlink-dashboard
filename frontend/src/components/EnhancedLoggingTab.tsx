@@ -222,23 +222,23 @@ export default function EnhancedLoggingTab() {
 
   const getLevelColor = (level: string) => {
     switch (level.toUpperCase()) {
-      case 'DEBUG': return 'text-gray-500';
-      case 'INFO': return 'text-blue-600';
-      case 'WARNING': return 'text-yellow-600';
-      case 'ERROR': return 'text-red-600';
-      case 'CRITICAL': return 'text-red-800 font-bold';
-      default: return 'text-gray-600';
+      case 'DEBUG': return 'text-muted-foreground';
+      case 'INFO': return 'text-primary dark:text-blue-400';
+      case 'WARNING': return 'text-yellow-600 dark:text-yellow-400 dark:text-yellow-400';
+      case 'ERROR': return 'text-destructive dark:text-red-400';
+      case 'CRITICAL': return 'text-red-800 dark:text-red-300 font-bold';
+      default: return 'text-muted-foreground';
     }
   };
 
   const getLevelBg = (level: string) => {
     switch (level.toUpperCase()) {
-      case 'DEBUG': return 'bg-gray-100';
-      case 'INFO': return 'bg-blue-100';
-      case 'WARNING': return 'bg-yellow-100';
-      case 'ERROR': return 'bg-red-100';
-      case 'CRITICAL': return 'bg-red-200';
-      default: return 'bg-gray-100';
+      case 'DEBUG': return 'bg-muted/50';
+      case 'INFO': return 'bg-blue-100 dark:bg-blue-900/20';
+      case 'WARNING': return 'bg-yellow-100 dark:bg-yellow-900/20';
+      case 'ERROR': return 'bg-red-100 dark:bg-red-900/20';
+      case 'CRITICAL': return 'bg-red-200 dark:bg-red-900/30';
+      default: return 'bg-muted/50';
     }
   };
 
@@ -262,11 +262,11 @@ export default function EnhancedLoggingTab() {
       {/* Files List */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h4 className="text-lg font-medium text-gray-900">Log Files</h4>
+          <h4 className="text-lg font-medium text-foreground">Log Files</h4>
           <button
             onClick={loadLogFiles}
             disabled={logFilesLoading}
-            className="flex items-center px-3 py-1 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors disabled:opacity-50"
+            className="flex items-center px-3 py-1 text-sm font-medium text-foreground bg-muted hover:bg-muted/80 rounded-md transition-colors disabled:opacity-50"
           >
             <RefreshCw className={`h-4 w-4 mr-1 ${logFilesLoading ? 'animate-spin' : ''}`} />
             Refresh
@@ -276,11 +276,11 @@ export default function EnhancedLoggingTab() {
         {logFiles && (
           <div className="grid gap-3">
             {Object.entries(logFiles.log_files).map(([filename, fileInfo]) => (
-              <div key={filename} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+              <div key={filename} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h5 className="text-sm font-medium text-gray-900">{filename}</h5>
-                    <div className="text-xs text-gray-500 space-x-4">
+                    <h5 className="text-sm font-medium text-foreground">{filename}</h5>
+                    <div className="text-xs text-muted-foreground space-x-4">
                       <span>Size: {fileInfo.size_mb}MB</span>
                       {fileInfo.line_count && <span>Lines: {fileInfo.line_count.toLocaleString()}</span>}
                       <span>Category: {fileInfo.category}</span>
@@ -290,7 +290,7 @@ export default function EnhancedLoggingTab() {
                   <button
                     onClick={() => handleFileSelect(filename)}
                     disabled={!fileInfo.can_search}
-                    className="flex items-center px-3 py-1 text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors disabled:opacity-50"
+                    className="flex items-center px-3 py-1 text-sm font-medium text-primary hover:text-primary/80 transition-colors disabled:opacity-50"
                   >
                     <Eye className="h-4 w-4 mr-1" />
                     View
@@ -306,14 +306,14 @@ export default function EnhancedLoggingTab() {
       {selectedFile && (
         <div className="border-t pt-6">
           <div className="flex items-center justify-between mb-4">
-            <h4 className="text-lg font-medium text-gray-900">
+            <h4 className="text-lg font-medium text-foreground">
               {selectedFile} Content
             </h4>
             <div className="flex items-center space-x-2">
               <select
                 value={perPage}
                 onChange={(e) => setPerPage(Number(e.target.value))}
-                className="text-sm border border-gray-300 rounded px-2 py-1"
+                className="text-sm border border-input rounded px-2 py-1"
               >
                 <option value={25}>25 lines</option>
                 <option value={50}>50 lines</option>
@@ -322,7 +322,7 @@ export default function EnhancedLoggingTab() {
               </select>
               <button
                 onClick={() => setSelectedFile(null)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-muted-foreground hover:text-muted-foreground transition-colors"
               >
                 ✕
               </button>
@@ -330,7 +330,7 @@ export default function EnhancedLoggingTab() {
           </div>
 
           {logContentLoading ? (
-            <div className="bg-gray-50 rounded-lg p-8 text-center">
+            <div className="bg-muted/50 rounded-lg p-8 text-center">
               <div className="inline-flex items-center">
                 <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
                 Loading content...
@@ -341,7 +341,7 @@ export default function EnhancedLoggingTab() {
               {/* Pagination Controls */}
               {logContent.total_pages > 1 && (
                 <div className="flex items-center justify-between">
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-muted-foreground">
                     Page {logContent.current_page} of {logContent.total_pages}
                     ({logContent.total_lines.toLocaleString()} total lines)
                   </div>
@@ -349,18 +349,18 @@ export default function EnhancedLoggingTab() {
                     <button
                       onClick={() => handlePageChange(logContent.current_page - 1)}
                       disabled={!logContent.has_prev}
-                      className="flex items-center px-2 py-1 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded transition-colors disabled:opacity-50"
+                      className="flex items-center px-2 py-1 text-sm font-medium text-foreground bg-muted hover:bg-muted/80 rounded transition-colors disabled:opacity-50"
                     >
                       <ChevronLeft className="h-4 w-4" />
                       Previous
                     </button>
-                    <span className="text-sm text-gray-600">
+                    <span className="text-sm text-muted-foreground">
                       {logContent.current_page} / {logContent.total_pages}
                     </span>
                     <button
                       onClick={() => handlePageChange(logContent.current_page + 1)}
                       disabled={!logContent.has_next}
-                      className="flex items-center px-2 py-1 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded transition-colors disabled:opacity-50"
+                      className="flex items-center px-2 py-1 text-sm font-medium text-foreground bg-muted hover:bg-muted/80 rounded transition-colors disabled:opacity-50"
                     >
                       Next
                       <ChevronRight className="h-4 w-4" />
@@ -370,15 +370,15 @@ export default function EnhancedLoggingTab() {
               )}
 
               {/* Log Content */}
-              <div className="bg-gray-900 text-gray-100 rounded-lg p-4 max-h-96 overflow-y-auto">
+              <div className="bg-muted dark:bg-background text-foreground rounded-lg p-4 max-h-96 overflow-y-auto">
                 <pre className="text-xs leading-relaxed whitespace-pre-wrap font-mono">
                   {logContent.content.join('\n')}
                 </pre>
               </div>
             </div>
           ) : (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <p className="text-sm text-red-600">Failed to load log file content.</p>
+            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
+              <p className="text-sm text-destructive">Failed to load log file content.</p>
             </div>
           )}
         </div>
@@ -389,11 +389,11 @@ export default function EnhancedLoggingTab() {
   const renderSearchView = () => (
     <div className="space-y-6">
       {/* Search Form */}
-      <div className="bg-gray-50 rounded-lg p-4">
-        <h4 className="text-lg font-medium text-gray-900 mb-4">Search Logs</h4>
+      <div className="bg-muted/50 rounded-lg p-4">
+        <h4 className="text-lg font-medium text-foreground mb-4">Search Logs</h4>
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-foreground mb-1">
               Search Query
             </label>
             <input
@@ -401,17 +401,17 @@ export default function EnhancedLoggingTab() {
               value={searchRequest.query}
               onChange={(e) => setSearchRequest(prev => ({ ...prev, query: e.target.value }))}
               placeholder="Enter search terms..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-input rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-background text-foreground"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-foreground mb-1">
               Category
             </label>
             <select
               value={searchRequest.category || ''}
               onChange={(e) => setSearchRequest(prev => ({ ...prev, category: e.target.value || undefined }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-input rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-background text-foreground"
             >
               <option value="">All categories</option>
               {categories?.categories.map(cat => (
@@ -420,13 +420,13 @@ export default function EnhancedLoggingTab() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-foreground mb-1">
               Log Level
             </label>
             <select
               value={searchRequest.level || ''}
               onChange={(e) => setSearchRequest(prev => ({ ...prev, level: e.target.value || undefined }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-input rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-background text-foreground"
             >
               <option value="">All levels</option>
               <option value="DEBUG">DEBUG</option>
@@ -437,13 +437,13 @@ export default function EnhancedLoggingTab() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-foreground mb-1">
               Limit Results
             </label>
             <select
               value={searchRequest.limit}
               onChange={(e) => setSearchRequest(prev => ({ ...prev, limit: Number(e.target.value) }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-input rounded-md focus:ring-2 focus:ring-primary focus:border-transparent bg-background text-foreground"
             >
               <option value={100}>100 results</option>
               <option value={500}>500 results</option>
@@ -455,7 +455,7 @@ export default function EnhancedLoggingTab() {
         <button
           onClick={handleSearch}
           disabled={searchLoading}
-          className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors disabled:opacity-50"
+          className="flex items-center px-4 py-2 text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 rounded-md transition-colors disabled:opacity-50"
         >
           <Search className={`h-4 w-4 mr-2 ${searchLoading ? 'animate-spin' : ''}`} />
           {searchLoading ? 'Searching...' : 'Search'}
@@ -466,19 +466,19 @@ export default function EnhancedLoggingTab() {
       {searchResponse && (
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h4 className="text-lg font-medium text-gray-900">
+            <h4 className="text-lg font-medium text-foreground">
               Search Results ({searchResponse.total_found} found)
             </h4>
             {searchResponse.truncated && (
-              <span className="text-sm text-yellow-600">Results limited to {searchResponse.search_params.limit}</span>
+              <span className="text-sm text-yellow-600 dark:text-yellow-400">Results limited to {searchResponse.search_params.limit}</span>
             )}
           </div>
 
           <div className="space-y-2">
             {searchResponse.results.map((result, index) => (
-              <div key={index} className="border rounded-lg p-3 hover:bg-gray-50">
+              <div key={index} className="border border-border rounded-lg p-3 hover:bg-muted/50">
                 <div className="flex items-start justify-between mb-2">
-                  <div className="text-xs text-gray-500">
+                  <div className="text-xs text-muted-foreground">
                     {result.file}:{result.line_number}
                     {result.parsed.timestamp && (
                       <span className="ml-2">{formatTimestamp(result.parsed.timestamp)}</span>
@@ -490,7 +490,7 @@ export default function EnhancedLoggingTab() {
                     </span>
                   )}
                 </div>
-                <pre className="text-sm text-gray-800 whitespace-pre-wrap font-mono">
+                <pre className="text-sm text-foreground whitespace-pre-wrap font-mono">
                   {result.content}
                 </pre>
               </div>
@@ -504,14 +504,14 @@ export default function EnhancedLoggingTab() {
   const renderAnalyticsView = () => (
     <div className="space-y-6">
       {/* Analytics Controls */}
-      <div className="bg-gray-50 rounded-lg p-4">
+      <div className="bg-muted/50 rounded-lg p-4">
         <div className="flex items-center justify-between">
-          <h4 className="text-lg font-medium text-gray-900">Log Analytics</h4>
+          <h4 className="text-lg font-medium text-foreground">Log Analytics</h4>
           <div className="flex items-center space-x-2">
             <select
               value={analyticsHours}
               onChange={(e) => setAnalyticsHours(Number(e.target.value))}
-              className="text-sm text-gray-700 border border-gray-300 rounded px-2 py-1 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="text-sm text-foreground border border-input rounded px-2 py-1 bg-background focus:ring-2 focus:ring-primary focus:border-transparent"
             >
               <option value={1}>Last 1 hour</option>
               <option value={6}>Last 6 hours</option>
@@ -522,7 +522,7 @@ export default function EnhancedLoggingTab() {
             <button
               onClick={loadAnalytics}
               disabled={analyticsLoading}
-              className="flex items-center px-3 py-1 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors disabled:opacity-50"
+              className="flex items-center px-3 py-1 text-sm font-medium text-white bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 rounded-md transition-colors disabled:opacity-50"
             >
               <BarChart3 className={`h-4 w-4 mr-1 ${analyticsLoading ? 'animate-spin' : ''}`} />
               {analyticsLoading ? 'Loading...' : 'Generate'}
@@ -535,26 +535,26 @@ export default function EnhancedLoggingTab() {
       {analytics && (
         <div className="grid grid-cols-2 gap-6">
           {/* By Level */}
-          <div className="bg-white border rounded-lg p-4">
-            <h5 className="text-md font-medium text-gray-900 mb-3">By Log Level</h5>
+          <div className="bg-background border border-border rounded-lg p-4">
+            <h5 className="text-md font-medium text-foreground mb-3">By Log Level</h5>
             <div className="space-y-2">
               {Object.entries(analytics.by_level).map(([level, count]) => (
                 <div key={level} className="flex items-center justify-between">
                   <span className={`text-sm font-medium ${getLevelColor(level)}`}>{level}</span>
-                  <span className="text-sm text-gray-600">{count.toLocaleString()}</span>
+                  <span className="text-sm text-muted-foreground">{count.toLocaleString()}</span>
                 </div>
               ))}
             </div>
           </div>
 
           {/* By Category */}
-          <div className="bg-white border rounded-lg p-4">
-            <h5 className="text-md font-medium text-gray-900 mb-3">By Category</h5>
+          <div className="bg-background border border-border rounded-lg p-4">
+            <h5 className="text-md font-medium text-foreground mb-3">By Category</h5>
             <div className="space-y-2">
               {Object.entries(analytics.by_category).map(([category, count]) => (
                 <div key={category} className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-700">{category}</span>
-                  <span className="text-sm text-gray-600">{count.toLocaleString()}</span>
+                  <span className="text-sm font-medium text-foreground">{category}</span>
+                  <span className="text-sm text-muted-foreground">{count.toLocaleString()}</span>
                 </div>
               ))}
             </div>
@@ -562,18 +562,18 @@ export default function EnhancedLoggingTab() {
 
           {/* Error Patterns */}
           {analytics.error_patterns.length > 0 && (
-            <div className="col-span-2 bg-white border rounded-lg p-4">
-              <h5 className="text-md font-medium text-gray-900 mb-3">Recent Error Patterns</h5>
+            <div className="col-span-2 bg-background border border-border rounded-lg p-4">
+              <h5 className="text-md font-medium text-foreground mb-3">Recent Error Patterns</h5>
               <div className="space-y-2 max-h-64 overflow-y-auto">
                 {analytics.error_patterns.map((error, index) => (
-                  <div key={index} className="flex items-start space-x-2 p-2 bg-red-50 rounded">
-                    <AlertTriangle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
+                  <div key={index} className="flex items-start space-x-2 p-2 bg-destructive/10 rounded">
+                    <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <div className="text-xs text-gray-500 mb-1">
+                      <div className="text-xs text-muted-foreground mb-1">
                         {error.category} • {error.level}
                         {error.timestamp && <span className="ml-2">{formatTimestamp(error.timestamp)}</span>}
                       </div>
-                      <p className="text-sm text-gray-800 truncate">{error.message}</p>
+                      <p className="text-sm text-foreground truncate">{error.message}</p>
                     </div>
                   </div>
                 ))}
@@ -582,24 +582,24 @@ export default function EnhancedLoggingTab() {
           )}
 
           {/* Summary */}
-          <div className="col-span-2 bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <h5 className="text-md font-medium text-blue-900 mb-2">Summary</h5>
+          <div className="col-span-2 bg-primary/10 border border-primary/20 rounded-lg p-4">
+            <h5 className="text-md font-medium text-foreground mb-2">Summary</h5>
             <div className="grid grid-cols-4 gap-4 text-center">
               <div>
-                <div className="text-2xl font-bold text-blue-700">{analytics.total_entries.toLocaleString()}</div>
-                <div className="text-sm text-blue-600">Total Entries</div>
+                <div className="text-2xl font-bold text-foreground">{analytics.total_entries.toLocaleString()}</div>
+                <div className="text-sm text-muted-foreground">Total Entries</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-blue-700">{analyticsHours}h</div>
-                <div className="text-sm text-blue-600">Time Range</div>
+                <div className="text-2xl font-bold text-foreground">{analyticsHours}h</div>
+                <div className="text-sm text-muted-foreground">Time Range</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-blue-700">{Object.keys(analytics.by_category).length}</div>
-                <div className="text-sm text-blue-600">Categories</div>
+                <div className="text-2xl font-bold text-foreground">{Object.keys(analytics.by_category).length}</div>
+                <div className="text-sm text-muted-foreground">Categories</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-red-700">{analytics.error_patterns.length}</div>
-                <div className="text-sm text-red-600">Error Patterns</div>
+                <div className="text-2xl font-bold text-destructive">{analytics.error_patterns.length}</div>
+                <div className="text-sm text-destructive">Error Patterns</div>
               </div>
             </div>
           </div>
@@ -611,14 +611,14 @@ export default function EnhancedLoggingTab() {
   const renderStreamView = () => (
     <div className="space-y-6">
       {/* Stream Controls */}
-      <div className="bg-gray-50 rounded-lg p-4">
+      <div className="bg-muted/50 rounded-lg p-4">
         <div className="flex items-center justify-between">
-          <h4 className="text-lg font-medium text-gray-900">Real-time Log Stream</h4>
+          <h4 className="text-lg font-medium text-foreground">Real-time Log Stream</h4>
           <div className="flex items-center space-x-2">
             {!isStreaming ? (
               <button
                 onClick={startLogStream}
-                className="flex items-center px-3 py-1 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors"
+                className="flex items-center px-3 py-1 text-sm font-medium text-white bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 rounded-md transition-colors"
               >
                 <Play className="h-4 w-4 mr-1" />
                 Start
@@ -626,7 +626,7 @@ export default function EnhancedLoggingTab() {
             ) : (
               <button
                 onClick={stopLogStream}
-                className="flex items-center px-3 py-1 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors"
+                className="flex items-center px-3 py-1 text-sm font-medium text-white bg-destructive hover:bg-destructive/90 rounded-md transition-colors"
               >
                 <Pause className="h-4 w-4 mr-1" />
                 Stop
@@ -634,7 +634,7 @@ export default function EnhancedLoggingTab() {
             )}
             <button
               onClick={() => setStreamMessages([])}
-              className="flex items-center px-3 py-1 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+              className="flex items-center px-3 py-1 text-sm font-medium text-foreground bg-muted hover:bg-muted/80 rounded-md transition-colors"
             >
               <Trash2 className="h-4 w-4 mr-1" />
               Clear
@@ -645,7 +645,7 @@ export default function EnhancedLoggingTab() {
         {/* Stream Filters */}
         <div className="grid grid-cols-2 gap-4 mt-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-foreground mb-1">
               Categories Filter
             </label>
             <div className="flex flex-wrap gap-2">
@@ -654,9 +654,9 @@ export default function EnhancedLoggingTab() {
                 return null;
               })()}
               {!categories ? (
-                <div className="text-sm text-gray-500">Loading categories...</div>
+                <div className="text-sm text-muted-foreground">Loading categories...</div>
               ) : categories.categories?.length === 0 ? (
-                <div className="text-sm text-gray-500">No categories available</div>
+                <div className="text-sm text-muted-foreground">No categories available</div>
               ) : (
                 categories.categories.map(cat => (
                   <label key={cat} className="flex items-center">
@@ -676,16 +676,16 @@ export default function EnhancedLoggingTab() {
                           }));
                         }
                       }}
-                      className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mr-1"
+                      className="h-3 w-3 text-primary focus:ring-primary border-input rounded mr-1"
                     />
-                    <span className="text-sm text-gray-700">{cat}</span>
+                    <span className="text-sm text-foreground">{cat}</span>
                   </label>
                 ))
               )}
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-foreground mb-1">
               Levels Filter
             </label>
             <div className="flex flex-wrap gap-2">
@@ -707,7 +707,7 @@ export default function EnhancedLoggingTab() {
                         }));
                       }
                     }}
-                    className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mr-1"
+                    className="h-3 w-3 text-primary focus:ring-primary border-input rounded mr-1"
                   />
                   <span className={`text-sm ${getLevelColor(level)}`}>{level}</span>
                 </label>
@@ -720,33 +720,33 @@ export default function EnhancedLoggingTab() {
       {/* Stream Messages */}
       <div
         ref={streamContainerRef}
-        className="bg-gray-900 text-gray-100 rounded-lg p-4 h-96 overflow-y-auto"
+        className="bg-muted dark:bg-background text-foreground rounded-lg p-4 h-96 overflow-y-auto"
       >
         {isStreaming && (
-          <div className="flex items-center mb-4 text-green-400">
+          <div className="flex items-center mb-4 text-green-400 dark:text-green-300">
             <Activity className="h-4 w-4 mr-2 animate-pulse" />
             Live streaming... ({streamMessages.length} messages)
           </div>
         )}
 
         {streamMessages.length === 0 ? (
-          <div className="text-center text-gray-500 mt-8">
+          <div className="text-center text-muted-foreground mt-8">
             {isStreaming ? 'Waiting for log messages...' : 'Start streaming to see real-time logs'}
           </div>
         ) : (
           <div className="space-y-1">
             {streamMessages.map((message, index) => (
               <div key={index} className="flex items-start space-x-2 text-xs font-mono">
-                <span className="text-gray-400 shrink-0">
+                <span className="text-muted-foreground shrink-0">
                   {new Date(message.timestamp).toLocaleTimeString()}
                 </span>
                 <span className={`shrink-0 ${getLevelColor(message.parsed.level)}`}>
                   {message.parsed.level?.padEnd(8) || 'INFO'.padEnd(8)}
                 </span>
-                <span className="text-gray-300 shrink-0">
+                <span className="text-muted-foreground shrink-0">
                   {message.category}
                 </span>
-                <span className="text-gray-100 break-all">
+                <span className="text-foreground break-all">
                   {message.parsed.message || message.content}
                 </span>
               </div>
@@ -760,10 +760,10 @@ export default function EnhancedLoggingTab() {
   return (
     <div className="p-6">
       <div className="mb-6">
-        <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-          <p className="text-sm text-blue-700">
+        <div className="bg-primary/10 border border-primary/20 rounded-md p-4">
+          <p className="text-sm text-primary dark:text-primary">
             <strong>Note:</strong> To configure logging settings (log level, retention, categories), visit the{' '}
-            <a href="/system" className="text-blue-600 hover:text-blue-800 underline">
+            <a href="/system" className="text-primary hover:text-primary/80 underline">
               System Settings
             </a>{' '}
             page and go to the Logging tab.
@@ -787,8 +787,8 @@ export default function EnhancedLoggingTab() {
                 className={`
                   flex items-center py-2 px-1 border-b-2 font-medium text-sm transition-colors
                   ${activeView === tab.id
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
                   }
                 `}
               >
