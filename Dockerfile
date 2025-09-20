@@ -23,10 +23,13 @@ FROM python:3.10-slim
 # Accept version as build argument
 ARG VERSION=dev
 
-# Install system dependencies
+# Install system dependencies including build tools for ARM64 compatibility
 RUN apt-get update && apt-get install -y \
     ffmpeg \
     curl \
+    gcc \
+    python3-dev \
+    build-essential \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
