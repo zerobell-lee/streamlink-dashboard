@@ -21,54 +21,49 @@ class SchedulerServiceV2:
 
     def __init__(self, session_factory):
         self.session_factory = session_factory
-        self._running = False
         self._monitoring_tasks: Dict[int, asyncio.Task] = {}
         self._monitoring_interval = 60  # 60초마다 체크
         self.recordings_dir = settings.RECORDINGS_DIR
 
     async def start(self):
         """Start the scheduler"""
-        if not self._running:
-            # Load existing schedules from database
-            await self._load_schedules()
+        # Load existing schedules from database
+        await self._load_schedules()
 
-            # Start file size monitoring task
-            self._file_size_task = asyncio.create_task(self._monitor_recording_file_sizes())
+        # Start file size monitoring task
+        self._file_size_task = asyncio.create_task(self._monitor_recording_file_sizes())
 
-            # Start rotation cleanup task (runs every 10 minutes)
-            self._rotation_task = asyncio.create_task(self._periodic_rotation_cleanup())
+        # Start rotation cleanup task (runs every 10 minutes)
+        self._rotation_task = asyncio.create_task(self._periodic_rotation_cleanup())
 
-            self._running = True
-            logger.info("Scheduler started successfully")
+        logger.info("Scheduler started successfully")
 
     async def stop(self):
         """Stop the scheduler"""
-        if self._running:
-            # Cancel file size monitoring task
-            if hasattr(self, '_file_size_task'):
-                self._file_size_task.cancel()
+        # Cancel file size monitoring task
+        if hasattr(self, '_file_size_task'):
+            self._file_size_task.cancel()
 
-            # Cancel rotation cleanup task
-            if hasattr(self, '_rotation_task'):
-                self._rotation_task.cancel()
+        # Cancel rotation cleanup task
+        if hasattr(self, '_rotation_task'):
+            self._rotation_task.cancel()
 
-            # Cancel all monitoring tasks
-            for task in self._monitoring_tasks.values():
-                task.cancel()
+        # Cancel all monitoring tasks
+        for task in self._monitoring_tasks.values():
+            task.cancel()
 
-            # Wait for tasks to complete
-            all_tasks = list(self._monitoring_tasks.values())
-            if hasattr(self, '_file_size_task'):
-                all_tasks.append(self._file_size_task)
-            if hasattr(self, '_rotation_task'):
-                all_tasks.append(self._rotation_task)
+        # Wait for tasks to complete
+        all_tasks = list(self._monitoring_tasks.values())
+        if hasattr(self, '_file_size_task'):
+            all_tasks.append(self._file_size_task)
+        if hasattr(self, '_rotation_task'):
+            all_tasks.append(self._rotation_task)
 
-            if all_tasks:
-                await asyncio.gather(*all_tasks, return_exceptions=True)
+        if all_tasks:
+            await asyncio.gather(*all_tasks, return_exceptions=True)
 
-            self._monitoring_tasks.clear()
-            self._running = False
-            logger.info("Scheduler stopped")
+        self._monitoring_tasks.clear()
+        logger.info("Scheduler stopped")
 
     async def _load_schedules(self):
         """Load all enabled schedules from database"""
@@ -197,24 +192,22 @@ class SchedulerServiceV2:
 
     async def _periodic_rotation_cleanup(self):
         """Periodically run rotation cleanup every 10 minutes"""
-        while self._running:
-            try:
+        try:
+            while True:
                 await asyncio.sleep(10)  # 10 seconds (for testing)
-                if self._running:  # Check again after sleep
-                    await self.run_rotation_cleanup()
-            except asyncio.CancelledError:
-                logger.info("Rotation cleanup task cancelled")
-                break
-            except Exception as e:
-                logger.error(f"Error in periodic rotation cleanup: {e}")
-                await asyncio.sleep(60)  # Wait 1 minute before retrying
+                await self.run_rotation_cleanup()
+        except asyncio.CancelledError:
+            logger.info("Rotation cleanup task cancelled")
+        except Exception as e:
+            logger.error(f"Error in periodic rotation cleanup: {e}")
+            await asyncio.sleep(60)  # Wait 1 minute before retrying
 
     async def _monitor_recording_file_sizes(self):
         """Periodically update file sizes for active recordings"""
         import os
 
-        while self._running:
-            try:
+        try:
+            while True:
                 async with AsyncSQLAlchemyUnitOfWork(self.session_factory) as uow:
                     # Query only recordings with 'recording' status using repository
                     from sqlalchemy import select
@@ -254,17 +247,17 @@ class SchedulerServiceV2:
                 # Check every 10 seconds (not too frequent)
                 await asyncio.sleep(10)
 
-            except asyncio.CancelledError:
-                logger.info("File size monitoring cancelled")
-                break
-            except Exception as e:
-                logger.error(f"Error monitoring file sizes: {e}")
-                await asyncio.sleep(10)  # Wait even on error
+        except asyncio.CancelledError:
+            logger.info("File size monitoring cancelled")
+        except Exception as e:
+            logger.error(f"Error monitoring file sizes: {e}")
+            await asyncio.sleep(10)  # Wait even on error
 
     async def _monitor_stream(self, schedule: RecordingSchedule):
         """Monitor a stream for live status"""
+        logger.info(f"Starting monitoring loop for schedule {schedule.id}")
         try:
-            while self._running:
+            while True:
                 try:
                     async with AsyncSQLAlchemyUnitOfWork(self.session_factory) as uow:
                         # Refresh schedule from database to get latest state
@@ -291,6 +284,8 @@ class SchedulerServiceV2:
                             if stream_info and stream_info.is_live:
                                 # Stream is live and we're not recording, start recording
                                 await self._start_recording_with_uow(uow, current_schedule, stream_info, recording_service)
+                                # Commit the recording creation
+                                await uow.commit()
 
                     # Wait before next check
                     await asyncio.sleep(self._monitoring_interval)
@@ -303,6 +298,10 @@ class SchedulerServiceV2:
             logger.info(f"Monitoring cancelled for schedule {schedule.id}")
         except Exception as e:
             logger.error(f"Error in monitoring loop for schedule {schedule.id}: {e}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
+
+        logger.info(f"Monitoring loop ended for schedule {schedule.id}")
 
     async def _start_recording_with_uow(self, uow: AsyncSQLAlchemyUnitOfWork, schedule: RecordingSchedule, stream_info, recording_service: RecordingService):
         """Start recording for a schedule with Unit of Work"""
@@ -346,7 +345,7 @@ class SchedulerServiceV2:
             )
 
             recording = await uow.recordings.create(recording)
-            await uow.commit()
+            await uow.flush()  # Flush to get ID without committing
 
             logger.info(f"Started recording {recording.id} for schedule {schedule.id}")
 
@@ -483,7 +482,11 @@ class SchedulerServiceV2:
             task = self._monitoring_tasks.get(schedule_id)
 
             if not task:
+                logger.warning(f"No monitoring task found for schedule {schedule_id}")
                 return None
+
+            # Debug task state
+            logger.debug(f"Task for schedule {schedule_id}: done={task.done()}, cancelled={task.cancelled()}")
 
             async with AsyncSQLAlchemyUnitOfWork(self.session_factory) as uow:
                 # Get schedule info using repository
@@ -555,7 +558,7 @@ class SchedulerServiceV2:
 
     def is_running(self) -> bool:
         """Check if scheduler is running"""
-        return self._running
+        return len(self._monitoring_tasks) > 0
 
     def get_scheduler_info(self) -> Dict:
         """Get scheduler information"""
